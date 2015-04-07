@@ -1,0 +1,10 @@
+cli:
+  build: .
+  links:
+   - cache
+  volumes:
+   - ./:/app
+  command: /usr/bin/tail -f /var/log/dmesg
+
+cache:
+  image: borja/docker-memcached
