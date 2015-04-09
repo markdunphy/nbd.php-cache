@@ -1,6 +1,6 @@
 <?php
 
-namespace Behance\NBD\Dbal\Test;
+namespace Behance\NBD\Cache\Test;
 
 abstract class BaseTest extends \PHPUnit_Framework_TestCase {
 
@@ -27,7 +27,7 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase {
    *
    * @return mixed  instace mock of $class
    */
-  protected function _getAbstractMock( $class, array $functions = null, array $arguments = [] ) {
+  protected function _getAbstractMock( $class, array $functions = [], array $arguments = [] ) {
 
     return $this->getMockForAbstractClass( $class, $arguments, '', true, true, true, $functions );
 

@@ -1,10 +1,14 @@
 <?php
 
-namespace Behance\NBD\Dbal\Interfaces;
+namespace Behance\NBD\Cache\Interfaces;
 
 interface CacheAdapterInterface {
 
   const EXPIRATION_DEFAULT = 1209600; // Two weeks in seconds
+
+  const EVENT_QUERY_BEFORE = 'cache.query.before';
+  const EVENT_QUERY_AFTER  = 'cache.query.after';
+  const EVENT_QUERY_FAIL   = 'cache.query.fail';
 
 
   /**
@@ -12,6 +16,13 @@ interface CacheAdapterInterface {
    * @param int    $port
    */
   public function addServer( $host, $port );
+
+
+  /**
+   * @param array $servers
+   */
+  public function addServers( array $servers );
+
 
   /**
    * @param string $key

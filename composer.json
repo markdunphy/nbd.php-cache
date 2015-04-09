@@ -27,5 +27,10 @@
         "psr-4": {
             "Behance\\NBD\\Cache\\": "src/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Behance\\NBD\\Cache\\Test\\": "tests/lib/"
+        }
     }
 }

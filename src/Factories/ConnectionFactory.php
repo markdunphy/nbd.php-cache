@@ -20,9 +20,7 @@ class ConnectionFactory {
     $class   = self::NAMESPACE_ADAPTERS . $type;
     $adapter = new $class();
 
-    foreach ( $servers as $server ) {
-      $adapter->addServer( $server['host'], $server['port'] );
-    }
+    $adapter->addServers( $servers );
 
     return $adapter;
 
