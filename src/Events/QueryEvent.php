@@ -23,9 +23,9 @@ class QueryEvent extends Event {
 
 
   /**
-   * @param string          $operation  which query function is in use
-   * @param string|string[] $key        what was being operated on (one or many)
-   * @param bool            $mutable
+   * @param string          $operation    which query function is in use
+   * @param string|string[] $key_or_keys  what was being operated on (one or many)
+   * @param bool            $mutable      whether operation was safe
    */
   public function __construct( $operation, $key_or_keys, $mutable ) {
 

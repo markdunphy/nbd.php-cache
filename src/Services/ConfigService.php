@@ -16,6 +16,18 @@ class ConfigService {
 
 
   /**
+   * @param array $servers
+   */
+  public function addServers( array $servers ) {
+
+    foreach ( $servers as $server ) {
+      $this->addServer( $server );
+    }
+
+  } // addServers
+
+
+  /**
    * @param array $config
    */
   public function addServer( array $config ) {
@@ -28,9 +40,15 @@ class ConfigService {
 
 
   /**
+   * @throws Behance\NBD\Cache\Exceptions\ConfigRequirementException
+   *
    * @return array
    */
   public function getServers() {
+
+    if ( empty( $this->_servers ) ) {
+      throw new ConfigRequirementException( "No server configurations, call ->addServer() or ->addServers() first" );
+    }
 
     return $this->_servers;
 

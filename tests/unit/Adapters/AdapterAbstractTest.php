@@ -25,7 +25,7 @@ class AdapterAbstractTest extends BaseTest {
       ? [ $this->getMock( $this->_dispatcher ) ]
       : [];
 
-    $mock       = $this->_getAbstractMock( $this->_target, [], $args );
+    $mock = $this->_getAbstractMock( $this->_target, [], $args );
 
     $mock->expects( $this->once() )
       ->method( '_' . $name )

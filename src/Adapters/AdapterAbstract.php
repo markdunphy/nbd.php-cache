@@ -3,10 +3,10 @@
 namespace Behance\NBD\Cache\Adapters;
 
 use Behance\NBD\Cache\Events\QueryEvent;
+use Behance\NBD\Cache\Events\QueryFailEvent;
 
 use Behance\NBD\Cache\Interfaces\CacheAdapterInterface;
 
-use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 abstract class AdapterAbstract implements CacheAdapterInterface {
@@ -25,18 +25,6 @@ abstract class AdapterAbstract implements CacheAdapterInterface {
     $this->_dispatcher = $event_dispatcher;
 
   } // __construct
-
-
-  /**
-   * {@inheritDoc}
-   */
-  abstract public function addServer( $host, $port );
-
-
-  /**
-   * {@inheritDoc}
-   */
-  abstract public function addServers( array $servers );
 
 
   /**
@@ -169,9 +157,9 @@ abstract class AdapterAbstract implements CacheAdapterInterface {
 
   /**
    * @param string   $event_name
-   * @param \Closure $handler
+   * @param callable $handler
    */
-  public function bind( $event_name, \Closure $handler ) {
+  public function bind( $event_name, callable $handler ) {
 
     if ( $this->_dispatcher ) {
       $this->_dispatcher->addListener( $event_name, $handler );
@@ -197,6 +185,8 @@ abstract class AdapterAbstract implements CacheAdapterInterface {
    * @param string          $operation
    * @param string|string[] $key_or_keys
    * @param bool            $mutable
+   *
+   * @return mixed
    */
   protected function _execute( \Closure $action, $operation, $key_or_keys, $mutable = false ) {
 
@@ -260,7 +250,7 @@ abstract class AdapterAbstract implements CacheAdapterInterface {
 
 
   /**
-   * @param string $key
+   * @param array $keys
    *
    * @return mixed
    */

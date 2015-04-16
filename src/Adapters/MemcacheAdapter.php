@@ -3,7 +3,7 @@
 namespace Behance\NBD\Cache\Adapters;
 
 use Behance\NBD\Cache\Adapters\AdapterAbstract;
-use Symfony\Component\EventDispatcher\EventDispatcher;
+use Behance\NBD\Cache\Exceptions\SystemRequirementException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class MemcacheAdapter extends AdapterAbstract {
@@ -26,10 +26,16 @@ class MemcacheAdapter extends AdapterAbstract {
 
 
   /**
+   * @throws Behance\NBD\Cache\Exceptions\SystemRequirementException  when memcache extension is not loaded
+   *
    * @param Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
    * @param Memcache $instance
    */
   public function __construct( EventDispatcherInterface $event_dispatcher = null, \Memcache $instance = null ) {
+
+    if ( !extension_loaded( 'memcache' ) ) {
+      throw new SystemRequirementException( 'Memcache extension is required' );
+    }
 
     $this->_connection = $instance ?: new \Memcache();
 
@@ -161,7 +167,7 @@ class MemcacheAdapter extends AdapterAbstract {
    *
    * @see http://www.php.net/manual/en/memcache.decrement.php
    */
-  protected function _decrement( $key, $value = 1 ) {
+  protected function _decrement( $key, $value ) {
 
     return $this->_connection->decrement( $key, $value );
 

@@ -30,14 +30,16 @@ class QueryFailEvent extends Event {
 
 
   /**
+   * @param string $reason
    * @param string $hostname
    * @param int    $port
+   * @param int    $code
    */
   public function __construct( $reason, $hostname = null, $port = null, $code = null ) {
 
+    $this->_reason   = $reason;
     $this->_hostname = $hostname;
     $this->_port     = $port;
-    $this->_reason   = $reason;
     $this->_code     = $code;
 
   } // __construct
