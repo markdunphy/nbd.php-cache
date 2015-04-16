@@ -2,9 +2,22 @@
 
 namespace Behance\NBD\Cache\Adapters;
 
-use Behance\NBD\Cache\Interfaces\CacheAdapterInterface;
+use Behance\NBD\Cache\Adapters\AdapterAbstract;
+use Behance\NBD\Cache\Exceptions\SystemRequirementException;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
-class MemcacheAdapter implements CacheAdapterInterface {
+class MemcacheAdapter extends AdapterAbstract {
+
+  /**
+   * @see http://php.net/manual/en/memcache.addserver.php
+   */
+  const DEFAULT_PERSISTENT          = true;
+  const DEFAULT_WEIGHT              = 10;
+  const DEFAULT_TIMEOUT_SECS        = 1;
+  const DEFAULT_SERVER_STATUS       = true;
+  const DEFAULT_RETRY_INTERVAL_SECS = 15;
+  const DEFAULT_FAILURE_REASON      = 'Node failure';
+
 
   /**
    * @var \Memcache
@@ -13,11 +26,20 @@ class MemcacheAdapter implements CacheAdapterInterface {
 
 
   /**
+   * @throws Behance\NBD\Cache\Exceptions\SystemRequirementException  when memcache extension is not loaded
+   *
+   * @param Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
    * @param Memcache $instance
    */
-  public function __construct( \Memcache $instance = null ) {
+  public function __construct( EventDispatcherInterface $event_dispatcher = null, \Memcache $instance = null ) {
+
+    if ( !extension_loaded( 'memcache' ) ) {
+      throw new SystemRequirementException( 'Memcache extension is required' );
+    }
 
     $this->_connection = $instance ?: new \Memcache();
+
+    parent::__construct( $event_dispatcher );
 
   } // __construct
 
@@ -25,23 +47,36 @@ class MemcacheAdapter implements CacheAdapterInterface {
   /**
    * {@inheritDoc}
    */
-  public function addServer( $host, $port ) {
+  public function addServer( $host, $port, $weight = self::DEFAULT_WEIGHT ) {
 
-    $this->_connection->addServer( $host, $port );
+    $failure_callback = ( function( $hostname, $port ) {
+      $this->_handleFailure( self::DEFAULT_FAILURE_REASON, $hostname, $port );
+    } );
+
+    $persist = self::DEFAULT_PERSISTENT;
+    $timeout = self::DEFAULT_TIMEOUT_SECS;
+    $retry   = self::DEFAULT_RETRY_INTERVAL_SECS;
+    $status  = self::DEFAULT_SERVER_STATUS;
+
+    $this->_connection->addServer( $host, $port, $persist, $weight, $timeout, $retry, $status, $failure_callback );
 
   } // addServer
 
 
   /**
    * {@inheritDoc}
-   *
-   * @see http://www.php.net/manual/en/memcache.get.php
    */
-  public function get( $key ) {
+  public function addServers( array $servers ) {
 
-    return $this->_connection->get( $key );
+    foreach ( $servers as $server ) {
 
-  } // get
+      $weight = isset( $server['weight'] ) ?: self::DEFAULT_WEIGHT;
+
+      $this->addServer( $server['host'], $server['port'], $weight );
+
+    } // foreach servers
+
+  } // addServers
 
 
   /**
@@ -49,21 +84,34 @@ class MemcacheAdapter implements CacheAdapterInterface {
    *
    * @see http://www.php.net/manual/en/memcache.get.php
    */
-  public function getMulti( array $keys ) {
+  protected function _get( $key ) {
 
-    $results = $this->_connection->get( $keys );
+    return $this->_connection->get( $key );
 
-    // All keys at least come back with defined, and in the requested order
+  } // _get
+
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see http://www.php.net/manual/en/memcache.get.php
+   */
+  protected function _getMulti( array $keys ) {
+
+    $data = $this->_connection->get( $keys );
+
+    // All keys at least come back defined (as null), and in the requested order
     foreach ( $keys as $key ) {
 
-      $results[ $key ] = ( isset( $results[ $key ] ) )
-                         ? $results[ $key ]
-                         : false;
+      if ( !isset( $data[ $key ] ) ) {
+        $data[ $key ] = null;
+      }
+
     } // foreach keys
 
-    return $results;
+    return $data;
 
-  } // getMulti
+  } // _getMulti
 
 
   /**
@@ -71,11 +119,11 @@ class MemcacheAdapter implements CacheAdapterInterface {
    *
    * @see http://www.php.net/manual/en/memcache.set.php
    */
-  public function set( $key, $value, $ttl = CacheAdapterInterface::EXPIRATION_DEFAULT ) {
+  protected function _set( $key, $value, $ttl ) {
 
     return $this->_connection->set( $key, $value, null, $ttl );
 
-  } // set
+  } // _set
 
 
   /**
@@ -83,11 +131,11 @@ class MemcacheAdapter implements CacheAdapterInterface {
    *
    * @see http://www.php.net/manual/en/memcache.add.php
    */
-  public function add( $key, $value, $ttl = CacheAdapterInterface::EXPIRATION_DEFAULT ) {
+  protected function _add( $key, $value, $ttl ) {
 
     return $this->_connection->add( $key, $value, null, $ttl );
 
-  } // add
+  } // _add
 
 
   /**
@@ -95,11 +143,11 @@ class MemcacheAdapter implements CacheAdapterInterface {
    *
    * @see http://www.php.net/manual/en/memcache.replace.php
    */
-  public function replace( $key, $value, $ttl = CacheAdapterInterface::EXPIRATION_DEFAULT ) {
+  protected function _replace( $key, $value, $ttl ) {
 
     return $this->_connection->replace( $key, $value, null, $ttl );
 
-  } // replace
+  } // _replace
 
 
   /**
@@ -107,11 +155,11 @@ class MemcacheAdapter implements CacheAdapterInterface {
    *
    * @see http://www.php.net/manual/en/memcache.increment.php
    */
-  public function increment( $key, $value = 1 ) {
+  protected function _increment( $key, $value ) {
 
     return $this->_connection->increment( $key, $value );
 
-  } // increment
+  } // _increment
 
 
   /**
@@ -119,11 +167,11 @@ class MemcacheAdapter implements CacheAdapterInterface {
    *
    * @see http://www.php.net/manual/en/memcache.decrement.php
    */
-  public function decrement( $key, $value = 1 ) {
+  protected function _decrement( $key, $value ) {
 
     return $this->_connection->decrement( $key, $value );
 
-  } // decrement
+  } // _decrement
 
 
   /**
@@ -131,21 +179,21 @@ class MemcacheAdapter implements CacheAdapterInterface {
    *
    * @see http://www.php.net/manual/en/memcache.delete.php
    */
-  public function delete( $key ) {
+  protected function _delete( $key ) {
 
     return $this->_connection->delete( $key );
 
-  } // delete
+  } // _delete
 
 
   /**
    * Simulates multiDelete operation, since Memcache extension does not support
    *
-   * @param string[] $keys
+   * {@inheritDoc}
    *
-   * @return bool
+   * @see http://www.php.net/manual/en/memcache.delete.php
    */
-  public function deleteMulti( array $keys ) {
+  protected function _deleteMulti( array $keys ) {
 
     foreach ( $keys as $key ) {
       $this->_connection->delete( $key );
@@ -153,26 +201,16 @@ class MemcacheAdapter implements CacheAdapterInterface {
 
     return true;
 
-  } // deleteMulti
+  } // _deleteMulti
 
 
   /**
    * {@inheritDoc}
    */
-  public function close() {
+  protected function _close() {
 
     return $this->_connection->close();
 
-  } // close
-
-
-  /**
-   * Ensures connection is removed in the case of garbage collection
-   */
-  public function __destruct() {
-
-    $this->close();
-
-  } // __destruct
+  } // _close
 
 } // MemcacheAdapter
