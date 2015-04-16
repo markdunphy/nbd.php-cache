@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/behance/nbd.php-cache.svg?branch=master)](https://travis-ci.org/behance/nbd.php-cache)
+[![Dependency Status](https://www.versioneye.com/user/projects/55302e6210e71490660008fd/badge.svg?style=flat)](https://www.versioneye.com/user/projects/55302e6210e71490660008fd)
 
 NBD.php - Cache Component
 =========================
