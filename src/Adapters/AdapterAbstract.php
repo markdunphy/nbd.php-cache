@@ -7,6 +7,7 @@ use Behance\NBD\Cache\Events\QueryFailEvent;
 
 use Behance\NBD\Cache\Interfaces\CacheAdapterInterface;
 
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 abstract class AdapterAbstract implements CacheAdapterInterface {
@@ -25,6 +26,19 @@ abstract class AdapterAbstract implements CacheAdapterInterface {
     $this->_dispatcher = $event_dispatcher;
 
   } // __construct
+
+
+  /**
+   * {@inheritDoc}
+   */
+  abstract public function addServer( $host, $port );
+
+
+  /**
+   * {@inheritDoc}
+   */
+  abstract public function addServers( array $servers );
+
 
 
   /**
@@ -161,9 +175,12 @@ abstract class AdapterAbstract implements CacheAdapterInterface {
    */
   public function bind( $event_name, callable $handler ) {
 
-    if ( $this->_dispatcher ) {
-      $this->_dispatcher->addListener( $event_name, $handler );
+    // Build a dispatcher if one doesn't already exist
+    if ( !$this->_dispatcher ) {
+      $this->_dispatcher = $this->_buildEventDispatcher();
     }
+
+    $this->_dispatcher->addListener( $event_name, $handler );
 
   } // bind
 
@@ -239,6 +256,16 @@ abstract class AdapterAbstract implements CacheAdapterInterface {
     $this->_dispatcher->dispatch( $event_name, $event );
 
   } // _emitQueryEvent
+
+
+  /**
+   * @return Symfony\Component\EventDispatcher\EventDispatcherInterface
+   */
+  protected function _buildEventDispatcher() {
+
+    return new EventDispatcher();
+
+  } // _buildEventDispatcher
 
 
   /**
