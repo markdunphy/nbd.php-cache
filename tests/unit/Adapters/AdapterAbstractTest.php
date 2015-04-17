@@ -73,8 +73,11 @@ class AdapterAbstractTest extends BaseTest {
   public function bind( $event_name ) {
 
     $dispatcher = $this->getMock( $this->_dispatcher );
-    $mock       = $this->_getAbstractMock( $this->_target, [], [ $dispatcher ] );
+    $mock       = $this->_getAbstractMock( $this->_target, [ '_buildEventDispatcher' ], [ $dispatcher ] );
     $handler    = ( function() {} );
+
+    $mock->expects( $this->never() )
+      ->method( '_buildEventDispatcher' );
 
     $dispatcher->expects( $this->once() )
       ->method( 'addListener' )
@@ -83,6 +86,30 @@ class AdapterAbstractTest extends BaseTest {
     $mock->bind( $event_name, $handler );
 
   } // bind
+
+
+  /**
+   * Ensures calling ->bind() with a preassigned event dispatcher will generate one
+   *
+   * @test
+   */
+  public function bindBuildDispatcher() {
+
+    $mock       = $this->_getAbstractMock( $this->_target, [ '_buildEventDispatcher' ] );
+    $dispatcher = $this->getMock( $this->_dispatcher );
+    $callable   = ( function() {} );
+
+    $mock->expects( $this->once() )
+      ->method( '_buildEventDispatcher' )
+      ->will( $this->returnValue( $dispatcher ) );
+
+    $mock->bind( CacheAdapterInterface::EVENT_QUERY_BEFORE, $callable );
+
+    // Ensure calling it unmocked does not explode
+    $vanilla_mock = $this->_getAbstractMock( $this->_target );
+    $vanilla_mock->bind( CacheAdapterInterface::EVENT_QUERY_BEFORE, $callable );
+
+  } // bindBuildDispatcher
 
 
   /**
