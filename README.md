@@ -40,6 +40,10 @@ Methods
 <tr><td>decrement( $key, $value = 1 )</td><td>Decrements $key by $value</td></tr>
 <tr><td>delete( $key )</td><td>Removes a single key from server</td></tr>
 <tr><td>deleteMulti( array $keys )</td><td>Removes group of keys from server(s)</td></tr>
+<tr><td>flush()</td><td>Removes all keys from server(s)</td></tr>
+<tr><td>getAllKeys()</td><td>Retrieves the full keylist from server(s)</td></tr>
+<tr><td>getStats()</td><td>Retrieves usage stats from server(s)</td></tr>
+<tr><td>bind( $event_name, callable $handler )</td><td>Provide handlers for cache-specific events</td></tr>
 <tr><td>close()</td><td>Disconnects from active connections</td></tr>
 </table>
 

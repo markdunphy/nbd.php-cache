@@ -11,12 +11,16 @@ class MemcacheAdapter extends AdapterAbstract {
   /**
    * @see http://php.net/manual/en/memcache.addserver.php
    */
-  const DEFAULT_PERSISTENT          = true;
-  const DEFAULT_WEIGHT              = 10;
-  const DEFAULT_TIMEOUT_SECS        = 1;
-  const DEFAULT_SERVER_STATUS       = true;
-  const DEFAULT_RETRY_INTERVAL_SECS = 15;
-  const DEFAULT_FAILURE_REASON      = 'Node failure';
+  const DEFAULT_PERSISTENT           = true;
+  const DEFAULT_WEIGHT               = 10;
+  const DEFAULT_TIMEOUT_SECS         = 1;
+  const DEFAULT_SERVER_STATUS        = true;
+  const DEFAULT_RETRY_INTERVAL_SECS  = 15;
+  const DEFAULT_FAILURE_REASON       = 'Node failure';
+
+  const STAT_KEY_SLABS               = 'slabs';
+  const STAT_KEY_ITEMS               = 'items';
+  const STAT_KEY_DUMP                = 'cachedump';
 
 
   /**
@@ -202,6 +206,88 @@ class MemcacheAdapter extends AdapterAbstract {
     return true;
 
   } // _deleteMulti
+
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see http://php.net/manual/en/memcache.flush.php
+   */
+  protected function _flush() {
+
+    return $this->_connection->flush();
+
+  } // _flush
+
+
+  /**
+   * When supported, retrieves a list of all keys being held in pool
+   *
+   * @param bool $on_reload
+   *      In the event of a cache flush, memcache does not actually write a different expiration, simply marks all blocks as invalid. This
+   *      unfortunately is not visible when listing all keys, and makes it seem like the flush didn't work.
+   *      Use this flag DURING a flush to cause a ->get request to be performed against each key it can find, causing it to remove itself, instead
+   *      of doing an individual ->get on each key during a list
+   *
+   * @return array  indexes are cache keys, values are their age
+   */
+  protected function _getAllKeys() {
+
+    $results      = [];
+    $connection   = $this->_connection;
+    $server_slabs = $connection->getExtendedStats( self::STAT_KEY_SLABS );
+
+    if ( empty( $server_slabs ) ) {
+      return $results;
+    }
+
+    foreach ( array_values( $server_slabs ) as $slabs ) {
+
+      $slab_ids = array_keys( $slabs );
+
+      foreach ( $slab_ids as $slab_id ) {
+
+        if ( !is_integer( $slab_id ) ) {
+          continue;
+        }
+
+        $cache_dump = $connection->getExtendedStats( self::STAT_KEY_DUMP, $slab_id );
+
+        foreach ( array_values( $cache_dump ) as $entries ) {
+
+          if ( !is_array( $entries ) ) {
+            continue;
+          }
+
+          foreach ( $entries as $key_name => $key_data ) {
+
+            if ( !is_array( $key_data ) ) {
+              continue;
+            }
+
+            $results[] = $key_name;
+
+          } // foreach entries
+
+        } // foreach cache_dump
+
+      } // foreach slabs
+
+    } // foreach server_slabs
+
+    return $results;
+
+  } // _getAllKeys
+
+
+  /**
+   * @return array
+   */
+  protected function _getStats() {
+
+    return $this->_connection->getStats();
+
+  } // _getStats
 
 
   /**

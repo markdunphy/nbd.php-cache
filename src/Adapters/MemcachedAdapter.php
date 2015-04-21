@@ -185,6 +185,42 @@ class MemcachedAdapter extends AdapterAbstract {
 
 
   /**
+   * {@inheritDoc}
+   *
+   * @see http://php.net/manual/en/memcache.flush.php
+   */
+  protected function _flush() {
+
+    return $this->_connection->flush();
+
+  } // _flush
+
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see http://php.net/manual/en/memcached.getallkeys.php
+   */
+  protected function _getAllKeys() {
+
+    return $this->_connection->getAllKeys();
+
+  } // _getAllKeys
+
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see http://php.net/manual/en/memcache.getstats.php
+   */
+  protected function _getStats() {
+
+    return $this->_connection->getStats();
+
+  } // _getStats
+
+
+  /**
    * Closes connection to server(s)
    */
   protected function _close() {
