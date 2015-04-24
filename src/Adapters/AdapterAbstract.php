@@ -170,6 +170,48 @@ abstract class AdapterAbstract implements CacheAdapterInterface {
 
 
   /**
+   * {@inheritDoc}
+   */
+  public function flush() {
+
+    $action = ( function() {
+      return $this->_flush();
+    } );
+
+    return $this->_execute( $action, __FUNCTION__, null, true );
+
+  } // flush
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public function getAllKeys() {
+
+    $action = ( function() {
+      return $this->_getAllKeys();
+    } );
+
+    return $this->_execute( $action, __FUNCTION__, '' );
+
+  } // getAllKeys
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public function getStats() {
+
+    $action = ( function() {
+      return $this->_getStats();
+    } );
+
+    return $this->_execute( $action, __FUNCTION__, '' );
+
+  } // getStats
+
+
+  /**
    * @param string   $event_name
    * @param callable $handler
    */

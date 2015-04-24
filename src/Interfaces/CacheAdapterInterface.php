@@ -104,6 +104,28 @@ interface CacheAdapterInterface {
 
 
   /**
+   * Invalidates the entire contents of a cache pool
+   *
+   * @return bool
+   */
+  public function flush();
+
+
+  /**
+   * Retrieves the first 1MB of keys, only should be used during development
+   *
+   * @return array
+   */
+  public function getAllKeys();
+
+
+  /**
+   * @return array
+   */
+  public function getStats();
+
+
+  /**
    * Disconnects from server(s)
    */
   public function close();

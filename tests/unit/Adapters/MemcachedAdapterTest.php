@@ -65,6 +65,9 @@ class MemcachedAdapterTest extends BaseTest {
         'decrement'   => [ 'decrement',   [ $key, $value, 1 ],     true ],
         'delete'      => [ 'delete',      [ $key ],                true ],
         'deleteMulti' => [ 'deleteMulti', [ $keys ],               true ],
+        'flush'       => [ 'flush',       [],                      true ],
+        'getStats'    => [ 'getStats',    [],                      $keys ],
+        'getAllKeys'  => [ 'getAllKeys',  [],                      $keys ],
     ];
 
   } // passthruProvider
