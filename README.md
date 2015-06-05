@@ -46,10 +46,3 @@ Methods
 <tr><td>bind( $event_name, callable $handler )</td><td>Provide handlers for cache-specific events</td></tr>
 <tr><td>close()</td><td>Disconnects from active connections</td></tr>
 </table>
-
-
-TODO
------
-
-- Stats calls
-- Key listings
