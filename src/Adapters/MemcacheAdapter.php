@@ -12,7 +12,7 @@ class MemcacheAdapter extends AdapterAbstract {
    * @see http://php.net/manual/en/memcache.addserver.php
    */
   const DEFAULT_PERSISTENT           = true;
-  const DEFAULT_WEIGHT               = 10;
+  const DEFAULT_WEIGHT               = 1;
   const DEFAULT_TIMEOUT_SECS         = 1;
   const DEFAULT_SERVER_STATUS        = true;
   const DEFAULT_RETRY_INTERVAL_SECS  = 15;
