@@ -2,7 +2,6 @@
 
 namespace Behance\NBD\Cache;
 
-use Behance\NBD\Cache\Services\ConfigService;
 use Behance\NBD\Cache\Test\BaseTest;
 
 class FactoryTest extends BaseTest {
@@ -13,8 +12,7 @@ class FactoryTest extends BaseTest {
    */
   public function create( $type ) {
 
-    $config  = new ConfigService();
-    $config->addServer( [ 'host' => 'cache1.com', 'port' => 11211 ] );
+    $config  = [ [ 'host' => 'cache1.com', 'port' => 11211 ] ];
 
     $adapter = Factory::create( $config, $type );
     $class   = Factory::NAMESPACE_ADAPTERS . $type . Factory::ADAPTER_SUFFIX;

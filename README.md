@@ -7,27 +7,39 @@ NBD.php - Cache Component
 Provides basis for communicating with memcache servers, abstracts away interface differences
 between [Memcache](https://pecl.php.net/package/memcached) and [Memcached](https://pecl.php.net/package/memcached) PECL extensions
 
-Usage
------
-
-#####Quickly create adapter and grab key 'abcdefg'
-
+###Usage
+---
 
 ```
 use Behance\NBD\Cache\Factory;
-use Behance\NBD\Cache\Services\ConfigService;
 
-$config = new ConfigService();
-$config->addServer( [ 'host' => 'cache1.com', 'port' => 11211 ] );
+$config = [
+  [
+    'host' => 'cache1.com',
+    'port' => 11211
+  ],
+  [
+    'host' => 'cache2.com',
+    'port' => 11212
+  ],
+  //[
+  //  ... add as many servers as necessary
+  //]
+];
 
-$adapter = Factory::create( $config, Factory::TYPE_MEMCACHE ); // Or TYPE_MEMCACHED, if available
+// Creates an adapter based on the presence of memcache/memcached extensions
+$cache = Factory::create( $config );
 
-$adapter->get( 'abcdefg' );
+// Retrieve a single value
+$cache->get( 'abcdefg' );
+
+// Retrieve multiple values
+$cache->getMulti( [ 'abcdefg', 'hijklmn' ] ); // Result preserves order
 ```
 
 
-Methods
------
+###Methods
+---
 
 <table>
 <tr><th>Method</th><th>Explanation</th></tr>
@@ -40,6 +52,11 @@ Methods
 <tr><td>decrement( $key, $value = 1 )</td><td>Decrements $key by $value</td></tr>
 <tr><td>delete( $key )</td><td>Removes a single key from server</td></tr>
 <tr><td>deleteMulti( array $keys )</td><td>Removes group of keys from server(s)</td></tr>
+
+<tr><td>beginBuffer</td><td>Simulates a transaction, provides consistent state for current connection</td></tr>
+<tr><td>rollbackBuffer</td><td>Ends transaction, without committing results</td></tr>
+<tr><td>commitBuffer</td><td>Ends transaction, commits results</td></tr>
+
 <tr><td>flush()</td><td>Removes all keys from server(s)</td></tr>
 <tr><td>getAllKeys()</td><td>Retrieves the full keylist from server(s)</td></tr>
 <tr><td>getStats()</td><td>Retrieves usage stats from server(s)</td></tr>
