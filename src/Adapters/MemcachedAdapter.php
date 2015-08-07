@@ -86,14 +86,20 @@ class MemcachedAdapter extends AdapterAbstract {
   /**
    * {@inheritDoc}
    */
-  protected function _execute( \Closure $action, $operation, $key_or_keys, $mutable = false ) {
+  protected function _execute( \Closure $action, $operation, $key_or_keys, $mutable = false, $value = null ) {
 
-    $result = parent::_execute( $action, $operation, $key_or_keys, $mutable );
-    $code   = $this->_connection->getResultCode();
+    $result = parent::_execute( $action, $operation, $key_or_keys, $mutable, $value );
 
-    if ( $code !== \Memcached::RES_SUCCESS ) {
-      $this->_handleFailure( $this->_connection->getResultMessage(), null, null, $code );
-    }
+    // Adapter connection itself will only report correctly when not currently buffering results
+    if ( !$this->isBuffering() ) {
+
+      $code = $this->_connection->getResultCode();
+
+      if ( $code !== \Memcached::RES_SUCCESS ) {
+        $this->_handleFailure( $this->_connection->getResultMessage(), null, null, $code );
+      }
+
+    } // if !isBuffering
 
     return $result;
 

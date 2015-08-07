@@ -3,7 +3,6 @@
 namespace Behance\NBD\Cache;
 
 use Behance\NBD\Cache\Services\ConfigService;
-use Behance\NBD\Cache\Exceptions\SystemRequirementException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class Factory {
@@ -18,15 +17,22 @@ class Factory {
   /**
    * TODO: auto-choose type based on available extensions
    *
+   * @param array[] $config  each host + port pair designates a server in a cache pool
+   * @param string  $type    which kind of adapter to build, if omitted will be chosen automatically (memcache vs memcached)
    * @param Behance\NBD\Cache\Services\ConfigService $config
-   * @param string $type  which kind of adapter to build, if omitted will choose automatically
    * @param Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
    *
    * @return Behance\NBD\Cache\Interfaces\AdapterInterface
    */
-  public static function create( ConfigService $config, $type = null, EventDispatcherInterface $event_dispatcher = null ) {
+  public static function create( array $config, $type = null, ConfigService $config_service = null, EventDispatcherInterface $event_dispatcher = null ) {
 
-    $servers = $config->getServers();
+    $config_service = $config_service ?: new ConfigService();
+
+    foreach ( $config as $server ) {
+      $config_service->addServer( $server );
+    }
+
+    $servers = $config_service->getServers();
     $class   = self::NAMESPACE_ADAPTERS . static::_chooseAdapterType( $type ) . self::ADAPTER_SUFFIX;
     $adapter = new $class( $event_dispatcher );
 
@@ -60,7 +66,7 @@ class Factory {
       return self::TYPE_MEMCACHE;
     }
 
-    throw new SystemRequirementException( "No cache extensions installed or available" );
+    throw new Exceptions\SystemRequirementException( "No cache extensions installed or available" );
 
   } // _chooseAdapterType
 

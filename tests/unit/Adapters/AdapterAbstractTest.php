@@ -70,7 +70,7 @@ class AdapterAbstractTest extends BaseTest {
    * @test
    * @dataProvider eventNameProvider
    */
-  public function bind( $event_name ) {
+  public function bindEvent( $event_name ) {
 
     $dispatcher = $this->getMock( $this->_dispatcher );
     $mock       = $this->_getAbstractMock( $this->_target, [ '_buildEventDispatcher' ], [ $dispatcher ] );
@@ -83,13 +83,13 @@ class AdapterAbstractTest extends BaseTest {
       ->method( 'addListener' )
       ->with( $event_name, $handler );
 
-    $mock->bind( $event_name, $handler );
+    $mock->bindEvent( $event_name, $handler );
 
-  } // bind
+  } // bindEvent
 
 
   /**
-   * Ensures calling ->bind() with a preassigned event dispatcher will generate one
+   * Ensures calling ->bindEvent() with a preassigned event dispatcher will generate one
    *
    * @test
    */
@@ -103,11 +103,11 @@ class AdapterAbstractTest extends BaseTest {
       ->method( '_buildEventDispatcher' )
       ->will( $this->returnValue( $dispatcher ) );
 
-    $mock->bind( CacheAdapterInterface::EVENT_QUERY_BEFORE, $callable );
+    $mock->bindEvent( CacheAdapterInterface::EVENT_QUERY_BEFORE, $callable );
 
     // Ensure calling it unmocked does not explode
     $vanilla_mock = $this->_getAbstractMock( $this->_target );
-    $vanilla_mock->bind( CacheAdapterInterface::EVENT_QUERY_BEFORE, $callable );
+    $vanilla_mock->bindEvent( CacheAdapterInterface::EVENT_QUERY_BEFORE, $callable );
 
   } // bindBuildDispatcher
 
@@ -124,5 +124,426 @@ class AdapterAbstractTest extends BaseTest {
 
   } // eventNameProvider
 
+
+  /**
+   * @test
+   */
+  public function isBuffering() {
+
+    $mock = $this->_getAbstractMock( $this->_target );
+
+    $this->assertFalse( $mock->isBuffering() );
+
+    $mock->beginBuffer();
+
+    $this->assertTrue( $mock->isBuffering() );
+
+  } // isBuffering
+
+
+  /**
+   * Ensure that both rollback and commit reset the state of buffering
+   *
+   * @test
+   * @dataProvider opBoolProvider
+   */
+  public function isBufferingAfter( $commit ) {
+
+    $mock = $this->_getAbstractMock( $this->_target );
+
+    $mock->beginBuffer();
+
+    $this->assertTrue( $mock->isBuffering() );
+
+    if ( $commit ) {
+      $mock->commitBuffer();
+    }
+    else {
+      $mock->rollbackBuffer();
+    }
+
+    $this->assertFalse( $mock->isBuffering() );
+
+  } // isBufferingAfter
+
+
+  /**
+   * @return array
+   */
+  public function opBoolProvider() {
+
+    return [
+        'Commit'   => [ true ],
+        'Rollback' => [ false ],
+    ];
+
+  } // opBoolProvider
+
+
+  /**
+   * @test
+   * @expectedException Behance\NBD\Cache\Exceptions\DuplicateActionException
+   */
+  public function beginBufferingDuplicate() {
+
+    $mock = $this->_getAbstractMock( $this->_target );
+
+    $mock->beginBuffer();
+    $mock->beginBuffer();
+
+  } // beginBufferingDuplicate
+
+
+  /**
+   * @test
+   * @dataProvider cacheGetSetProvider
+   */
+  public function bufferedGetSetRollback( array $key_values, $expected_key, $expected_value ) {
+
+    $mock  = $this->_getAbstractMock( $this->_target, [ '_performExecute' ] );
+
+    // Ensure sets never hit adapter
+    $mock->expects( $this->never() )
+      ->method( '_performExecute' );
+
+    $mock->beginBuffer();
+
+    foreach ( $key_values as $key => $value ) {
+      $mock->set( $key, $value );
+    }
+
+    $this->assertEquals( $expected_value, $mock->get( $expected_key ) );
+    $this->assertEquals( [ $expected_key => $expected_value ], $mock->getMulti( [ $expected_key ] ) );
+    $this->assertEquals( $key_values, $mock->getMulti( array_keys( $key_values ) ) );
+
+    $mock->rollbackBuffer();
+
+  } // bufferedGetSetRollback
+
+
+  /**
+   * @test
+   * @dataProvider cacheGetSetProvider
+   */
+  public function bufferedGetSetCommit( array $key_values, $expected_key, $expected_value ) {
+
+    $mock  = $this->_getAbstractMock( $this->_target, [ '_performExecute' ] );
+
+    // TODO: figure out how to match keys in-order of being set during commit
+    $mock->expects( $this->exactly( count( $key_values ) ) )
+      ->method( '_performExecute' )
+      ->with( $this->anything(), 'set', $this->anything(), true );
+
+    $mock->beginBuffer();
+
+    foreach ( $key_values as $key => $value ) {
+      $mock->set( $key, $value );
+    }
+
+    // Creating operations, just to ensure these don't get buffered accidentally
+    $this->assertEquals( $expected_value, $mock->get( $expected_key ) );
+    $this->assertEquals( [ $expected_key => $expected_value ], $mock->getMulti( [ $expected_key ] ) );
+
+    $mock->commitBuffer();
+
+  } // bufferedGetSetCommit
+
+
+  /**
+   * Ensure the order of operations do not affect the results
+   *
+   * @return array
+   */
+  public function cacheGetSetProvider() {
+
+    $key   = 'abcdefg';
+    $value = 123456;
+
+    $map1  = [
+        'abc' => 123,
+        'def' => 456,
+        $key  => $value
+    ];
+
+    $map2 = [
+        $key  => $value,
+        'abc' => 123,
+        'def' => 456,
+    ];
+
+    $map3 = [
+        'abc' => 123,
+        $key  => $value,
+        'def' => 456,
+    ];
+
+    return [
+        [ $map1, $key, $value ],
+        [ $map2, $key, $value ],
+        [ $map3, $key, $value ],
+    ];
+
+  } // cacheGetSetProvider
+
+
+  /**
+   * @test
+   * @dataProvider cacheSetDeleteGetProvider
+   */
+  public function bufferedSetDeleteGet( array $key_values, array $deleted_keys, $expected_key, $expected_value, $multi_delete ) {
+
+    $mock  = $this->_getAbstractMock( $this->_target, [ '_performExecute' ] );
+
+    // Ensure set's/delete's never actually hit
+    $mock->expects( $this->never() )
+      ->method( '_performExecute' );
+
+    $mock->beginBuffer();
+
+    foreach ( $key_values as $key => $value ) {
+      $mock->set( $key, $value );
+    }
+
+    // Ensure buffer is consistent whether or not keys were deleted via delete() or deleteMulti()
+    if ( $multi_delete ) {
+      $mock->deleteMulti( $deleted_keys );
+    }
+
+    else {
+      foreach ( $deleted_keys as $deleted_key ) {
+        $mock->delete( $deleted_key );
+      }
+    } // else (!multi_delete)
+
+    $this->assertEquals( $expected_value, $mock->get( $expected_key ) );
+    $this->assertEquals( [ $expected_key => $expected_value ], $mock->getMulti( [ $expected_key ] ) );
+
+    $mock->rollbackBuffer();
+
+  } // bufferedSetDeleteGet
+
+
+  /**
+   * @test
+   * @dataProvider cacheSetDeleteGetProvider
+   */
+  public function bufferedSetDeleteGetCommit( array $key_values, array $deleted_keys, $expected_key, $expected_value, $multi_delete ) {
+
+    $mock  = $this->_getAbstractMock( $this->_target, [ '_performExecute' ] );
+
+    // Ensure set's/delete's never actually hit
+    $ops = ( $multi_delete )
+           ? count( $key_values ) + 1
+           : count( $key_values ) + count( $deleted_keys );
+
+    $mock->expects( $this->exactly( $ops ) )
+      ->method( '_performExecute' );
+
+    $mock->beginBuffer();
+
+    foreach ( $key_values as $key => $value ) {
+      $mock->set( $key, $value );
+    }
+
+    // Ensure buffer is consistent whether or not keys were deleted via delete() or deleteMulti()
+    if ( $multi_delete ) {
+      $mock->deleteMulti( $deleted_keys );
+    }
+
+    else {
+      foreach ( $deleted_keys as $deleted_key ) {
+        $mock->delete( $deleted_key );
+      }
+    } // else (!multi_delete)
+
+    // Creating operations, just to ensure these don't get buffered accidentally
+    $this->assertEquals( $expected_value, $mock->get( $expected_key ) );
+    $this->assertEquals( [ $expected_key => $expected_value ], $mock->getMulti( [ $expected_key ] ) );
+
+    $mock->commitBuffer();
+
+  } // bufferedSetDeleteGetCommit
+
+
+  /**
+   * Ensure the order of operations do not affect the results
+   *
+   * @return array
+   */
+  public function cacheSetDeleteGetProvider() {
+
+    $key   = 'abcdefg';
+    $value = 123456;
+
+    $map1  = [
+        'abc' => 123,
+        'def' => 456,
+        $key  => $value
+    ];
+
+    $map2 = [
+        $key  => $value,
+        'abc' => 123,
+        'def' => 456,
+    ];
+
+    $map3 = [
+        'abc' => 123,
+        $key  => $value,
+        'def' => 456,
+    ];
+
+    return [
+        [ $map1, [ 'abc' ], $key, $value, true ],
+        [ $map1, [ 'abc' ], $key, $value, false ],
+        [ $map1, [ 'def' ], $key, $value, true ],
+        [ $map1, [ 'def' ], $key, $value, false ],
+        [ $map1, [ 'abc', 'def' ], $key, $value, true ],
+        [ $map1, [ 'abc', 'def' ], $key, $value, false ],
+        [ $map1, [ $key ], $key, false, true ],
+        [ $map1, [ $key ], $key, false, false ],
+        [ $map1, [ 'abc', 'def', $key ], $key, false, true ],
+        [ $map1, [ 'abc', 'def', $key ], $key, false, false ],
+
+        [ $map2, [ 'abc' ], $key, $value, true ],
+        [ $map2, [ 'abc' ], $key, $value, false ],
+        [ $map2, [ 'def' ], $key, $value, true ],
+        [ $map2, [ 'def' ], $key, $value, false ],
+        [ $map2, [ 'abc', 'def' ], $key, $value, true ],
+        [ $map2, [ 'abc', 'def' ], $key, $value, false ],
+        [ $map2, [ $key ], $key, false, true ],
+        [ $map2, [ $key ], $key, false, false ],
+        [ $map2, [ 'abc', 'def', $key ], $key, false, true ],
+        [ $map2, [ 'abc', 'def', $key ], $key, false, false ],
+
+        [ $map3, [ 'abc' ], $key, $value, true ],
+        [ $map3, [ 'abc' ], $key, $value, false ],
+        [ $map3, [ 'def' ], $key, $value, true ],
+        [ $map3, [ 'def' ], $key, $value, false ],
+        [ $map3, [ 'abc', 'def' ], $key, $value, true ],
+        [ $map3, [ 'abc', 'def' ], $key, $value, false ],
+        [ $map3, [ $key ], $key, false, true ],
+        [ $map3, [ $key ], $key, false, false ],
+        [ $map3, [ 'abc', 'def', $key ], $key, false, true ],
+        [ $map3, [ 'abc', 'def', $key ], $key, false, false ],
+    ];
+
+  } // cacheSetDeleteGetProvider
+
+
+  /**
+   * Ensure combo of buffered + unbuffered keys will mix consistently
+   *
+   * @test
+   * @dataProvider cacheBufferUnbufferProvider
+   */
+  public function unbufferedSetGet( array $key_values, $expected_key, $expected_value ) {
+
+    $mock  = $this->_getAbstractMock( $this->_target, [ '_performExecute' ] );
+
+    $mock->expects( $this->once() )
+      ->method( '_performExecute' )
+      ->with( $this->anything(), 'get', $expected_key, false )
+      ->will( $this->returnValue( $expected_value ) );
+
+    $mock->beginBuffer();
+
+    foreach ( $key_values as $key => $value ) {
+      $mock->set( $key, $value );
+    }
+
+    $this->assertEquals( $expected_value, $mock->get( $expected_key ) );
+    $this->assertEquals( $key_values, $mock->getMulti( array_keys( $key_values ) ) );
+
+  } // unbufferedSetGet
+
+
+  /**
+   * Ensure combo of buffered + unbuffered keys will mix consistently
+   *
+   * @test
+   * @dataProvider cacheBufferUnbufferProvider
+   */
+  public function unbufferedSetGetMulti( array $key_values, $expected_key, $expected_value ) {
+
+    $mock  = $this->_getAbstractMock( $this->_target, [ '_performExecute' ] );
+
+    $mock->expects( $this->once() )
+      ->method( '_performExecute' )
+      ->with( $this->anything(), 'getMulti', [ $expected_key ], false )
+      ->will( $this->returnValue( [ $expected_key => $expected_value ] ) );
+
+    $mock->beginBuffer();
+
+    foreach ( $key_values as $key => $value ) {
+      $mock->set( $key, $value );
+    }
+
+    $keys   = array_keys( $key_values );
+    $keys[] = $expected_key;
+
+    // Add expected into full mix for comparison
+    $key_values[ $expected_key ] = $expected_value;
+
+    $this->assertEquals( $key_values, $mock->getMulti( $keys ) );
+
+  } // unbufferedSetGetMulti
+
+
+  /**
+   * @return array
+   */
+  public function cacheBufferUnbufferProvider() {
+
+    $key   = 'abcdefg';
+    $value = 123456;
+
+    $map1  = [
+        'abc' => 123,
+        'def' => 456,
+        'ghi' => 789
+    ];
+
+    return [
+        'Unbuffered Key' => [ $map1, $key, $value ]
+    ];
+
+  } // cacheBufferUnbufferProvider
+
+
+  /**
+   * @test
+   * @dataProvider unsupportedBufferOpProvider
+   * @expectedException Behance\NBD\Cache\Exceptions\OperationNotSupportedException
+   */
+  public function unsupportedBufferedOps( $operation ) {
+
+    $mock  = $this->_getAbstractMock( $this->_target, [ '_performExecute' ] );
+
+    // TODO: figure out how to match keys in-order of being set during commit
+    $mock->expects( $this->never() )
+      ->method( '_performExecute' );
+
+    $mock->beginBuffer();
+
+    $mock->{$operation}( 'abcdef', 123 );
+
+  } // unsupportedBufferedOps
+
+
+  /**
+   * @return arrau
+   */
+  public function unsupportedBufferOpProvider() {
+
+    return [
+        [ 'add' ],
+        [ 'replace' ],
+        [ 'increment' ],
+        [ 'decrement' ],
+        [ 'flush' ],
+    ];
+
+  } // unsupportedBufferOpProvider
 
 } // AdapterAbstractTest
