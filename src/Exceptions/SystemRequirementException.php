@@ -2,6 +2,6 @@
 
 namespace Behance\NBD\Cache\Exceptions;
 
-use Behance\NBD\Cache\Exceptions\Exception as BaseException;
+use Behance\NBD\Cache\CacheException;
 
-class SystemRequirementException extends BaseException {}
+class SystemRequirementException extends CacheException {}

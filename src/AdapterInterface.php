@@ -1,8 +1,8 @@
 <?php
 
-namespace Behance\NBD\Cache\Interfaces;
+namespace Behance\NBD\Cache;
 
-interface CacheAdapterInterface {
+interface AdapterInterface {
 
   const EXPIRATION_DEFAULT = 1209600; // Two weeks in seconds
 
@@ -167,4 +167,4 @@ interface CacheAdapterInterface {
    */
   public function close();
 
-} // CacheAdapterInterface
+} // AdapterInterface

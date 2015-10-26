@@ -1,11 +1,9 @@
 <?php
 
-namespace Behance\NBD\Cache\Adapters;
+namespace Behance\NBD\Cache;
 
 use Behance\NBD\Cache\Events\QueryEvent;
 use Behance\NBD\Cache\Events\QueryFailEvent;
-
-use Behance\NBD\Cache\Interfaces\CacheAdapterInterface;
 
 use Behance\NBD\Cache\Exceptions\DuplicateActionException;
 use Behance\NBD\Cache\Exceptions\OperationNotSupportedException;
@@ -13,7 +11,7 @@ use Behance\NBD\Cache\Exceptions\OperationNotSupportedException;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
-abstract class AdapterAbstract implements CacheAdapterInterface {
+abstract class AdapterAbstract implements AdapterInterface {
 
   /**
    * @var Symfony\Component\EventDispatcher\EventDispatcherInterface
@@ -102,7 +100,7 @@ abstract class AdapterAbstract implements CacheAdapterInterface {
   /**
    * {@inheritDoc}
    */
-  public function set( $key, $value, $ttl = CacheAdapterInterface::EXPIRATION_DEFAULT ) {
+  public function set( $key, $value, $ttl = AdapterInterface::EXPIRATION_DEFAULT ) {
 
     $action = ( function() use ( $key, $value, $ttl ) {
       return $this->_set( $key, $value, $ttl );
@@ -116,7 +114,7 @@ abstract class AdapterAbstract implements CacheAdapterInterface {
   /**
    * {@inheritDoc}
    */
-  public function add( $key, $value, $ttl = CacheAdapterInterface::EXPIRATION_DEFAULT ) {
+  public function add( $key, $value, $ttl = AdapterInterface::EXPIRATION_DEFAULT ) {
 
     $action = ( function() use ( $key, $value, $ttl ) {
       return $this->_add( $key, $value, $ttl );
@@ -130,7 +128,7 @@ abstract class AdapterAbstract implements CacheAdapterInterface {
   /**
    * {@inheritDoc}
    */
-  public function replace( $key, $value, $ttl = CacheAdapterInterface::EXPIRATION_DEFAULT ) {
+  public function replace( $key, $value, $ttl = AdapterInterface::EXPIRATION_DEFAULT ) {
 
     $action = ( function() use ( $key, $value, $ttl ) {
       return $this->_replace( $key, $value, $ttl );
@@ -363,11 +361,11 @@ abstract class AdapterAbstract implements CacheAdapterInterface {
    */
   protected function _performExecute( \Closure $action, $operation, $key_or_keys, $mutable ) {
 
-    $this->_emitQueryEvent( CacheAdapterInterface::EVENT_QUERY_BEFORE, $operation, $key_or_keys, $mutable );
+    $this->_emitQueryEvent( AdapterInterface::EVENT_QUERY_BEFORE, $operation, $key_or_keys, $mutable );
 
     $result = $action( $key_or_keys );
 
-    $this->_emitQueryEvent( CacheAdapterInterface::EVENT_QUERY_AFTER, $operation, $key_or_keys, $mutable );
+    $this->_emitQueryEvent( AdapterInterface::EVENT_QUERY_AFTER, $operation, $key_or_keys, $mutable );
 
     return $result;
 
@@ -480,7 +478,7 @@ abstract class AdapterAbstract implements CacheAdapterInterface {
 
     $event = new QueryFailEvent( $reason, $hostname, $port, $code );
 
-    $this->_dispatcher->dispatch( CacheAdapterInterface::EVENT_QUERY_FAIL, $event );
+    $this->_dispatcher->dispatch( AdapterInterface::EVENT_QUERY_FAIL, $event );
 
   } // _handleFailure
 

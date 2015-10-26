@@ -1,6 +1,6 @@
 <?php
 
-namespace Behance\NBD\Cache\Services;
+namespace Behance\NBD\Cache;
 
 use Behance\NBD\Cache\Test\BaseTest;
 

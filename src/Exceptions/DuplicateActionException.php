@@ -2,6 +2,6 @@
 
 namespace Behance\NBD\Cache\Exceptions;
 
-use Behance\NBD\Cache\Exceptions\Exception as BaseException;
+use Behance\NBD\Cache\CacheException;
 
-class DuplicateActionException extends BaseException {}
+class DuplicateActionException extends CacheException {}

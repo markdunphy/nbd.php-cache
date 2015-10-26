@@ -45,9 +45,9 @@ $cache->getMulti( [ 'abcdefg', 'hijklmn' ] ); // Result preserves order
 <tr><th>Method</th><th>Explanation</th></tr>
 <tr><td>get( $key )</td><td>Retrieves value of $key</td></tr>
 <tr><td>getMulti( array $keys )</td><td>Will return ordered list with all keys defined, set to null if individual is missing</td></tr>
-<tr><td>set( $key, $value, $ttl = CacheAdapterInterface::EXPIRATION_DEFAULT )</td><td>Saves $key to $value</td></tr>
-<tr><td>add( $key, $value, $ttl = CacheAdapterInterface::EXPIRATION_DEFAULT )</td><td>Saves $key to $value, ONLY if $key does NOT exist already</td></tr>
-<tr><td>replace( $key, $value, $ttl = CacheAdapterInterface::EXPIRATION_DEFAULT )</td><td>Saves $value to $key, ONLY if $key already exists</td></tr>
+<tr><td>set( $key, $value, $ttl = AdapterInterface::EXPIRATION_DEFAULT )</td><td>Saves $key to $value</td></tr>
+<tr><td>add( $key, $value, $ttl = AdapterInterface::EXPIRATION_DEFAULT )</td><td>Saves $key to $value, ONLY if $key does NOT exist already</td></tr>
+<tr><td>replace( $key, $value, $ttl = AdapterInterface::EXPIRATION_DEFAULT )</td><td>Saves $value to $key, ONLY if $key already exists</td></tr>
 <tr><td>increment( $key, $value = 1 )</td><td>Increments $key by $value</td></tr>
 <tr><td>decrement( $key, $value = 1 )</td><td>Decrements $key by $value</td></tr>
 <tr><td>delete( $key )</td><td>Removes a single key from server</td></tr>
