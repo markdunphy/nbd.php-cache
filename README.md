@@ -19,7 +19,7 @@ between [Memcache](https://pecl.php.net/package/memcached) and [Memcached](https
 ---
 
 ```
-use Behance\NBD\Cache\Factory;
+use Behance\NBD\Cache;
 
 $config = [
   [
@@ -36,7 +36,7 @@ $config = [
 ];
 
 // Creates an adapter based on the presence of memcache/memcached extensions
-$cache = Factory::create( $config );
+$cache = Cache\Factory::create( $config );
 
 // Retrieve a single value
 $cache->get( 'abcdefg' );
@@ -53,7 +53,7 @@ Unit testing:
 
 Integration testing: leveraging Docker, using actual mysql container
 1. `docker-compose up -d`
-2. `docker exec -it nbdphpdbal_web_1 /bin/bash`
+2. `docker exec -it nbdphpcache_web_1 /bin/bash`
 3. `cd /app`
 4. `./vendor/bin/phpunit`
 
