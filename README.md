@@ -45,6 +45,17 @@ $cache->get( 'abcdefg' );
 $cache->getMulti( [ 'abcdefg', 'hijklmn' ] ); // Result preserves order
 ```
 
+### Testing
+---   
+Unit testing: 
+1. `composer install`
+2. `./vendor/bin/phpunit`
+
+Integration testing: leveraging Docker, using actual mysql container
+1. `docker-compose up -d`
+2. `docker exec -it nbdphpdbal_web_1 /bin/bash`
+3. `cd /app`
+4. `./vendor/bin/phpunit`
 
 ### Operations
 ---
