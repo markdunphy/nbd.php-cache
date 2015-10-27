@@ -10,10 +10,10 @@ between [Memcache](https://pecl.php.net/package/memcached) and [Memcached](https
 
 1. Very minimal dependencies, to be used in very diverse environments
 2. Flexibility to switch between `Memcache` vs. `Memcached` PECL extensions using a single interface
-3. Automatically detect PECL extensions and leverage them in priority order (Memcached over Memcache)
-4. Make every attempt to shield connection and management logic from implementer
-5. Support limited cache "transaction" functionality: Just like an ACID DB transaction, reads + writes only visible single process until committed. Helpful for embedded cache processes that follow actual DB transactions.
-6. Provide deep introspection with events
+  - Automatically detect PECL extensions and leverage them in priority order (Memcached over Memcache)
+3. Make every attempt to shield connection and management logic from implementer
+4. Support limited cache "transaction" functionality: Just like an ACID DB transaction, reads + writes only visible single process until committed. Helpful for embedded cache processes that follow actual DB transactions.
+5. Provide deep introspection with events
 
 
 ###Usage
