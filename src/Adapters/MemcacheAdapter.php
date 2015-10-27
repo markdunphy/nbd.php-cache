@@ -2,7 +2,7 @@
 
 namespace Behance\NBD\Cache\Adapters;
 
-use Behance\NBD\Cache\Adapters\AdapterAbstract;
+use Behance\NBD\Cache\AdapterAbstract;
 use Behance\NBD\Cache\Exceptions\SystemRequirementException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -36,10 +36,6 @@ class MemcacheAdapter extends AdapterAbstract {
    * @param Memcache $instance
    */
   public function __construct( EventDispatcherInterface $event_dispatcher = null, \Memcache $instance = null ) {
-
-    if ( !extension_loaded( 'memcache' ) ) {
-      throw new SystemRequirementException( 'Memcache extension is required' );
-    }
 
     $this->_connection = $instance ?: new \Memcache();
 

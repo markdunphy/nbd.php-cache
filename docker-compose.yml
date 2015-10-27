@@ -1,10 +1,14 @@
-cli:
+web:
   build: .
   links:
    - cache
   volumes:
    - ./:/app
-  command: /usr/bin/tail -f /var/log/dmesg
+  environment:
+    CFG_APP_DEBUG: 1
+    CFG_CACHE_HOST: cache
+    CFG_CACHE_PORT: 11211
+    FPM_BUSY_BUFFER: 16k
 
 cache:
   image: borja/docker-memcached

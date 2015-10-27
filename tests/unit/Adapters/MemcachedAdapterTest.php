@@ -3,7 +3,7 @@
 namespace Behance\NBD\Cache\Adapters;
 
 use Behance\NBD\Cache\Test\BaseTest;
-use Behance\NBD\Cache\Interfaces\CacheAdapterInterface;
+use Behance\NBD\Cache\AdapterInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class MemcachedAdapterTest extends BaseTest {
@@ -162,7 +162,7 @@ class MemcachedAdapterTest extends BaseTest {
     $adapter    = new MemcachedAdapter( $dispatcher, $memcache );
     $hit        = false;
 
-    $dispatcher->addListener( CacheAdapterInterface::EVENT_QUERY_FAIL, function() use ( &$hit ) {
+    $dispatcher->addListener( AdapterInterface::EVENT_QUERY_FAIL, function() use ( &$hit ) {
       $hit = true;
     } );
 

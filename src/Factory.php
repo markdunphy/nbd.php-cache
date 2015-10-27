@@ -2,7 +2,7 @@
 
 namespace Behance\NBD\Cache;
 
-use Behance\NBD\Cache\Services\ConfigService;
+use Behance\NBD\Cache\ConfigService;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class Factory {
@@ -13,13 +13,25 @@ class Factory {
   const TYPE_MEMCACHE      = 'Memcache';
   const TYPE_MEMCACHED     = 'Memcached';
 
+  /**
+   * @var string[] list of valid adapter types, in preferred priority order
+   */
+  protected static $_ADAPTER_TYPES = [
+      self::TYPE_MEMCACHED,
+      self::TYPE_MEMCACHE
+  ];
+
 
   /**
-   * TODO: auto-choose type based on available extensions
-   *
+   * @var string
+   */
+  private $_type;
+
+
+  /**
    * @param array[] $config  each host + port pair designates a server in a cache pool
    * @param string  $type    which kind of adapter to build, if omitted will be chosen automatically (memcache vs memcached)
-   * @param Behance\NBD\Cache\Services\ConfigService $config
+   * @param Behance\NBD\Cache\ConfigService $config
    * @param Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
    *
    * @return Behance\NBD\Cache\Interfaces\AdapterInterface
@@ -33,7 +45,7 @@ class Factory {
     }
 
     $servers = $config_service->getServers();
-    $class   = self::NAMESPACE_ADAPTERS . static::_chooseAdapterType( $type ) . self::ADAPTER_SUFFIX;
+    $class   = self::NAMESPACE_ADAPTERS . ( new static( $type ) )->getType() . self::ADAPTER_SUFFIX;
     $adapter = new $class( $event_dispatcher );
 
     $adapter->addServers( $servers );
@@ -44,30 +56,78 @@ class Factory {
 
 
   /**
-   * @throws Behance\NBD\Cache\Exceptions\SystemRequirementException  when no cache backends are available
+   * NOTE: Only use ::create() directly, this is only public to provide simple test interface
+   *
+   * @throws Behance\NBD\Cache\CacheException when an invalid type is selected
    *
    * @param string|null $type
+   */
+  public function __construct( $type = null ) {
+
+    // When type is specified manually, determine its validity + availability
+    if ( !empty( $type ) ) {
+
+      if ( !in_array( $type, self::$_ADAPTER_TYPES ) ) {
+        throw new CacheException( "Invalid cache adapter: " . var_export( $type, 1 ) );
+      }
+
+      if ( !$this->_isExtensionLoaded( $this->_getExtensionName( $type ) ) ) {
+        throw new Exceptions\SystemRequirementException( "Selected cache adapter not available: " . var_export( $type, 1 ) );
+      }
+
+      $this->_type = $type;
+      return;
+
+    } // if type
+
+    // Otherwise, automatically select a type from the prioritized list
+    foreach ( self::$_ADAPTER_TYPES as $adapter_type ) {
+
+      if ( $this->_isExtensionLoaded( $this->_getExtensionName( $adapter_type ) ) ) {
+        $this->_type = $adapter_type;
+        break;
+      }
+
+    } // foreach adapter_type
+
+    if ( empty( $this->_type ) ) {
+      throw new Exceptions\SystemRequirementException( "No cache extensions installed or available" );
+    }
+
+  } // __construct
+
+
+  /**
+   * @return string
+   */
+  public function getType() {
+
+    return $this->_type;
+
+  } // getType
+
+
+  /**
+   * @param string $type
+   *
+   * @return bool
+   */
+  protected function _isExtensionLoaded( $type ) {
+
+    return extension_loaded( $type );
+
+  } // _isExtensionLoaded
+
+
+  /**
+   * @param string $type
    *
    * @return string
    */
-  protected static function _chooseAdapterType( $type ) {
+  private function _getExtensionName( $type ) {
 
-    // Adapter already provided? Use it
-    if ( !empty( $type ) ) {
-      return $type;
-    }
+    return strtolower( $type );
 
-    // Highest priority, memcached adapter
-    if ( extension_loaded( 'memcached' ) ) {
-      return self::TYPE_MEMCACHED;
-    }
-
-    if ( extension_loaded( 'memcache' ) ) {
-      return self::TYPE_MEMCACHE;
-    }
-
-    throw new Exceptions\SystemRequirementException( "No cache extensions installed or available" );
-
-  } // _chooseAdapterType
+  } // _getExtensionName
 
 } // Factory
