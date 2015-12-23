@@ -6,9 +6,5 @@ php:
 
 before_script: phpenv config-add .travis.php.ini
 
-matrix:
-  allow_failures:
-    - php: 7.0
-
 install:
   - composer install
