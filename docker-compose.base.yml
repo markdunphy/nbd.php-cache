@@ -1,0 +1,9 @@
+application:
+  build: .
+  environment:
+    CFG_APP_DEBUG: 1
+    CFG_CACHE_HOST: cache
+    CFG_CACHE_PORT: 11211
+    CFG_REDIS_HOST: redis
+    CFG_REDIS_PORT: 6379
+  command: bash /app/test.sh

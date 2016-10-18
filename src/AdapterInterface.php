@@ -43,7 +43,7 @@ interface AdapterInterface {
   /**
    * @param string $key
    * @param mixed  $value
-   * @param int    $ttl
+   * @param int    $ttl   in seconds
    *
    * @return bool
    */
@@ -53,7 +53,7 @@ interface AdapterInterface {
   /**
    * @param string $key
    * @param mixed  $value
-   * @param int    $ttl
+   * @param int    $ttl   in seconds
    *
    * @return bool
    */
@@ -63,7 +63,7 @@ interface AdapterInterface {
   /**
    * @param string $key
    * @param mixed  $value
-   * @param int    $ttl
+   * @param int    $ttl   in seconds
    *
    * @return bool
    */

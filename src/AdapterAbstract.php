@@ -88,7 +88,7 @@ abstract class AdapterAbstract implements AdapterInterface {
   public function getMulti( array $keys ) {
 
     // NOTE: $keys are passed/used, since count/values may change in buffering mode
-    $action = ( function( $keys ) {
+    $action = ( function() use ( $keys ) {
       return $this->_getMulti( $keys );
     } );
 

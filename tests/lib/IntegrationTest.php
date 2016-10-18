@@ -14,6 +14,7 @@ abstract class IntegrationTest extends BaseTest {
     return [
         'Memcache'  => [ Factory::TYPE_MEMCACHE ],
         'Memcached' => [ Factory::TYPE_MEMCACHED ],
+        'Redis'     => [ Factory::TYPE_REDIS ]
     ];
 
   } // typeProvider
@@ -25,12 +26,19 @@ abstract class IntegrationTest extends BaseTest {
    */
   protected function setUp() {
 
-    $config = $this->_getEnvironmentConfig();
+    $types = $this->typeProvider();
 
-    // IMPORTANT: only run integration tests when a cache instance is provided and working
-    if ( empty( $config['host'] ) ) {
-      $this->markTestSkipped( 'Cache not available' );
-    }
+    foreach ( $types as $type_name_array ) {
+
+      $config = $this->_getEnvironmentConfig( $type_name_array[0] );
+      // IMPORTANT: only run integration tests when a cache instance is provided and working
+      if ( empty( $config['host'] ) ) {
+        $this->markTestSkipped( 'Cache not available' );
+      }
+
+    } // foreach types
+
+
 
     parent::setUp();
 
@@ -41,9 +49,11 @@ abstract class IntegrationTest extends BaseTest {
    */
   protected function tearDown() {
 
-    $adapter = $this->_getLiveAdapter();
+    $memcache = $this->_getLiveAdapter( Factory::TYPE_MEMCACHE );
+    $memcache->flush();
 
-    $adapter->flush();
+    $redis = $this->_getLiveAdapter( Factory::TYPE_REDIS );
+    $redis->flush();
 
   } // tearDown
 
@@ -55,7 +65,7 @@ abstract class IntegrationTest extends BaseTest {
   protected function _getLiveAdapter( $type = null ) {
 
     $configs = [
-        'master' => $this->_getEnvironmentConfig()
+        'master' => $this->_getEnvironmentConfig( $type )
     ];
 
     return Factory::create( $configs, $type );
@@ -66,12 +76,12 @@ abstract class IntegrationTest extends BaseTest {
   /**
    * @return array
    */
-  private function _getEnvironmentConfig() {
+  private function _getEnvironmentConfig( $type ) {
 
-    return [
-        'host' => getenv( 'CFG_CACHE_HOST' ),
-        'port' => getenv( 'CFG_CACHE_PORT' ),
-    ];
+    // Redis vs. non-Redis configurations
+    return ( $type === Factory::TYPE_REDIS )
+           ? [ 'host' => getenv( 'CFG_REDIS_HOST' ), 'port' => getenv( 'CFG_REDIS_PORT' ) ]
+           : [ 'host' => getenv( 'CFG_CACHE_HOST' ), 'port' => getenv( 'CFG_CACHE_PORT' ) ];
 
   } // _getEnvironmentConfig
 

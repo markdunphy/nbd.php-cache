@@ -1,2 +1,7 @@
 FROM bryanlatten/docker-php:9.0-legacy
 MAINTAINER Bryan Latten <latten@adobe.com>
+
+RUN phpenmod redis
+COPY ./ /app
+
+RUN cd /app && composer install

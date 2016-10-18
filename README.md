@@ -3,18 +3,22 @@
 
 # behance/nbd.php-cache
 Provides basis for communicating with memcache servers, abstracts away interface differences
-between [Memcache](https://pecl.php.net/package/memcached) and [Memcached](https://pecl.php.net/package/memcached) PECL extensions
+between [Memcache](https://pecl.php.net/package/memcached), [Memcached](https://pecl.php.net/package/memcached), and [Redis](https://pecl.php.net/package/redis) PECL extensions
 
 ### Goals
 ---
 
-1. Very minimal dependencies, to be used in very diverse environments
-2. Flexibility to switch between `Memcache` vs. `Memcached` PECL extensions using a single interface
-  - Automatically detect PECL extensions and leverage them in priority order (Memcached over Memcache)
+1. Have minimal dependencies, to be used in very diverse environments.
+2. Migration tool: flexibly switch between `Memcache`, `Memcached`, and `Redis` PECL extensions using a single interface
+  - Automatically detect PECL extensions and leverage them in priority order (Memcached over Memcache over Redis)
 3. Make every attempt to shield connection and management logic from implementer
 4. Support limited cache "transaction" functionality: Just like an ACID DB transaction, reads + writes only visible single process until committed. Helpful for embedded cache processes that follow actual DB transactions.
 5. Provide deep introspection with events
 
+
+###Implementation Note
+
+- Redis, at time of writing, connects at the [moment](https://github.com/phpredis/phpredis/issues/934) of [configuration](https://github.com/phpredis/phpredis/issues/504). Until lazy instantiation is fully implemented in the released PECL extension (milestone 3.1.0), initial connection errors are sadly swallowed to work similar to memcache/memcached.
 
 ###Usage
 ---
@@ -35,28 +39,43 @@ $config = [
   //  ... add as many servers as necessary
   //]
 ];
+```
 
-// Creates an adapter based on the presence of memcache/memcached extensions
+Create an adapter based on the presence of memcache/memcached/redis extensions
+
+```
 $cache = Cache\Factory::create( $config );
+```
 
-// Retrieve a single value
+Or, build a instance of a specific type:
+
+```
+$cache = Cache\Factory::create( $config, Factory::TYPE_REDIS );
+$cache = Cache\Factory::create( $config, Factory::TYPE_MEMCACHE );
+$cache = Cache\Factory::create( $config, Factory::TYPE_MEMCACHED );
+```
+
+Retrieve a single value
+
+```
 $cache->get( 'abcdefg' );
+```
 
-// Retrieve multiple values
+Retrieve multiple values
+
+```
 $cache->getMulti( [ 'abcdefg', 'hijklmn' ] ); // Result preserves order
 ```
 
 ### Testing
----   
-Unit testing: 
+---
+Unit testing, requires `memcache`, `memcached`, and `redis` plugins:
 1. `composer install`
 2. `./vendor/bin/phpunit`
 
-Integration testing: leveraging Docker, using actual mysql container
-1. `docker-compose up -d`
-2. `docker exec -it nbdphpcache_web_1 /bin/bash`
-3. `cd /app`
-4. `./vendor/bin/phpunit`
+(preferred) Integration testing: leverages docker / docker-compose, using actual service containers for memcache and redis)
+1. (on PHP 7.0) `docker-compose build seven && docker-compose run seven`
+2. (on PHP 5.6) `docker-compose build fivesix && docker-compose run fivesix`
 
 ### Operations
 ---

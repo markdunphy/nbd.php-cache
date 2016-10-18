@@ -12,13 +12,15 @@ class Factory {
 
   const TYPE_MEMCACHE      = 'Memcache';
   const TYPE_MEMCACHED     = 'Memcached';
+  const TYPE_REDIS         = 'Redis';
 
   /**
    * @var string[] list of valid adapter types, in preferred priority order
    */
   protected static $_ADAPTER_TYPES = [
       self::TYPE_MEMCACHED,
-      self::TYPE_MEMCACHE
+      self::TYPE_MEMCACHE,
+      self::TYPE_REDIS
   ];
 
 
