@@ -13,6 +13,14 @@ class MemcachedAdapter extends AdapterAbstract {
    */
   private $_connection;
 
+  /**
+   * A clone of the functionality from laravel port
+   *
+   * @var bool  whether or not to use the breaking memcached 3.0 interface
+   * @link https://github.com/laravel/framework/pull/15739/files
+   */
+  private $_memcached_version_3_0;
+
 
   /**
    * @param Symfony\Component\EventDispatcher\EventDispatcherInterface
@@ -21,6 +29,9 @@ class MemcachedAdapter extends AdapterAbstract {
   public function __construct( EventDispatcherInterface $event_dispatcher = null, \Memcached $instance = null ) {
 
     $this->_connection = $instance ?: new \Memcached();
+
+    // IMPORTANT: Unfortunately, there is a breaking change in the 3.0 version of Memcached driver...handle it
+    $this->_memcached_version_3_0 = ( new \ReflectionMethod( 'Memcached', 'getMulti' ) )->getNumberOfParameters() == 2;
 
     parent::__construct( $event_dispatcher );
 
@@ -74,7 +85,9 @@ class MemcachedAdapter extends AdapterAbstract {
 
     $null = null;
 
-    return $this->_connection->getMulti( $keys, $null, \Memcached::GET_PRESERVE_ORDER );
+    return ( $this->_memcached_version_3_0 )
+           ? $this->_connection->getMulti( $keys, \Memcached::GET_PRESERVE_ORDER )
+           : $this->_connection->getMulti( $keys, $null, \Memcached::GET_PRESERVE_ORDER );
 
   } // _getMulti
 

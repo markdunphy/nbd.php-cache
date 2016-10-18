@@ -28,6 +28,15 @@ class MemcacheAdapter extends AdapterAbstract {
    */
   private $_connection;
 
+  /**
+   * A broken ->get() interface that noone in the community can appear to resolve
+   * forces our hand to work around it.
+   *
+   * @var int  number of parameters that get takes, which appears to be php version dependent
+   * @link https://github.com/websupport-sk/pecl-memcache/issues/7
+   */
+  private $_memcache_get_requires_filler;
+
 
   /**
    * @throws Behance\NBD\Cache\Exceptions\SystemRequirementException  when memcache extension is not loaded
@@ -38,6 +47,9 @@ class MemcacheAdapter extends AdapterAbstract {
   public function __construct( EventDispatcherInterface $event_dispatcher = null, \Memcache $instance = null ) {
 
     $this->_connection = $instance ?: new \Memcache();
+
+    // Really unfortunate to have to do this
+    $this->_memcache_get_requires_filler = ( new \ReflectionMethod( 'Memcache', 'get' ) )->getNumberOfParameters() > 1;
 
     parent::__construct( $event_dispatcher );
 
@@ -86,7 +98,12 @@ class MemcacheAdapter extends AdapterAbstract {
    */
   protected function _get( $key ) {
 
-    return $this->_connection->get( $key );
+    $flags  = null;  // Passed by reference
+    $filler = false; // Passed by reference, undocumented complaint in PHP7 without
+
+    return ( $this->_memcache_get_requires_filler )
+           ? $this->_connection->get( $key, $flags, $filler )
+           : $this->_connection->get( $key );
 
   } // _get
 
@@ -98,7 +115,7 @@ class MemcacheAdapter extends AdapterAbstract {
    */
   protected function _getMulti( array $keys ) {
 
-    $data = $this->_connection->get( $keys );
+    $data = $this->_get( $keys );
 
     // All keys at least come back defined (as null), and in the requested order
     foreach ( $keys as $key ) {

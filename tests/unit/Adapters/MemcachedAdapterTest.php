@@ -2,8 +2,8 @@
 
 namespace Behance\NBD\Cache\Adapters;
 
-use Behance\NBD\Cache\Test\BaseTest;
 use Behance\NBD\Cache\AdapterInterface;
+use Behance\NBD\Cache\Test\BaseTest;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class MemcachedAdapterTest extends BaseTest {
@@ -28,7 +28,7 @@ class MemcachedAdapterTest extends BaseTest {
    */
   public function passthru( $method, $args, $expected ) {
 
-    $memcache = $this->getMock( $this->_cache, [ $method ] );
+    $memcache = $this->createMock( $this->_cache );
 
     $memcache->expects( $this->once() )
       ->method( $method )
@@ -51,13 +51,12 @@ class MemcachedAdapterTest extends BaseTest {
     $value = 12345;
 
     $keys   = [ 'abc', 'def', 'ghi' ];
-    // $values = [ 'abc' => 123, 'def' => 456, 'ghi' => 789 ];
+    $values = [ 'abc' => 123, 'def' => 456, 'ghi' => 789 ];
 
     return [
         'addServer'   => [ 'addServer',   [ 'cache1.com', 11211 ], null ],
-        // @see https://github.com/php-memcached-dev/php-memcached/issues/126
-        // 'get'         => [ 'get',         [ $key ],                $value ],
-        // 'getMulti'    => [ 'getMulti',    [ $keys ],               $values ],
+        'get'         => [ 'get',         [ $key ],                $value ],
+        'getMulti'    => [ 'getMulti',    [ $keys ],               $values ],
         'set'         => [ 'set',         [ $key, $value ],        true ],
         'add'         => [ 'add',         [ $key, $value ],        true ],
         'replace'     => [ 'replace',     [ $key, $value ],        true ],
@@ -78,7 +77,10 @@ class MemcachedAdapterTest extends BaseTest {
    */
   public function close() {
 
-    $memcache = $this->getMock( $this->_cache, [ 'quit' ] );
+    $memcache = $this->getMockBuilder( $this->_cache )
+                     ->setMethods( [ 'quit' ] )
+                     ->getMock();
+
     $memcache->expects( $this->once() )
       ->method( 'quit' );
 
@@ -93,11 +95,12 @@ class MemcachedAdapterTest extends BaseTest {
    */
   public function addServer() {
 
-    $memcache = $this->getMock( $this->_cache, [ 'addServer' ] );
+    $memcache = $this->getMockBuilder( $this->_cache )
+                     ->setMethods( [ 'addServer' ] )
+                     ->getMock();
 
     $host     = 'cache1.com';
     $port     = 11211;
-
 
     $memcache->expects( $this->once() )
       ->method( 'addServer' )
@@ -115,7 +118,9 @@ class MemcachedAdapterTest extends BaseTest {
    */
   public function addServers() {
 
-    $memcache = $this->getMock( $this->_cache, [ 'addServers' ] );
+    $memcache = $this->getMockBuilder( $this->_cache )
+                     ->setMethods( [ 'addServers' ] )
+                     ->getMock();
 
     $host1    = 'cache1.com';
     $host2    = 'cache2.com';
@@ -147,7 +152,10 @@ class MemcachedAdapterTest extends BaseTest {
    */
   public function executeFail() {
 
-    $memcache = $this->getMock( $this->_cache, [ 'add', 'getResultCode' ] );
+    $memcache = $this->getMockBuilder( $this->_cache )
+                     ->setMethods( [ 'add', 'getResultCode' ] )
+                     ->getMock();
+
     $result   = false;
 
     $memcache->expects( $this->once() )

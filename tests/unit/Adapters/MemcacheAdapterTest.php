@@ -32,7 +32,9 @@ class MemcacheAdapterTest extends BaseTest {
    */
   public function passthru( $method, $args, $expected ) {
 
-    $memcache = $this->getMock( $this->_cache, [ $method ] );
+    $memcache = $this->getMockBuilder( $this->_cache )
+                     ->setMethods( [ $method ] )
+                     ->getMock();
 
     $memcache->expects( $this->once() )
       ->method( $method )
@@ -79,7 +81,10 @@ class MemcacheAdapterTest extends BaseTest {
     $value = [ 'abcdef' => 12345, 'defghi' => 67890 ];
 
     // IMPORTANT: this adapter takes multiple argument types through `get`
-    $memcache = $this->getMock( $this->_cache, [ 'get' ] );
+    $memcache = $this->getMockBuilder( $this->_cache )
+                     ->setMethods( [ 'get' ] )
+                     ->getMock();
+
     $memcache->expects( $this->once() )
       ->method( 'get' )
       ->with( $keys )
@@ -102,7 +107,8 @@ class MemcacheAdapterTest extends BaseTest {
     $value = [];
 
     // IMPORTANT: this adapter takes multiple argument types through `get`
-    $memcache = $this->getMock( $this->_cache, [ 'get' ] );
+    $memcache = $this->createMock( $this->_cache );
+
     $memcache->expects( $this->once() )
       ->method( 'get' )
       ->with( $keys )
@@ -125,7 +131,10 @@ class MemcacheAdapterTest extends BaseTest {
     $keys  = [ 'abc', 'def', 'ghi' ];
 
     // IMPORTANT: this adapter only simulates a multi-delete
-    $memcache = $this->getMock( $this->_cache, [ 'delete' ] );
+    $memcache = $this->getMockBuilder( $this->_cache )
+                     ->setMethods( [ 'delete' ] )
+                     ->getMock();
+
     $memcache->expects( $this->exactly( count( $keys ) ) )
       ->method( 'delete' );
 
@@ -141,7 +150,9 @@ class MemcacheAdapterTest extends BaseTest {
    */
   public function addServer() {
 
-    $memcache = $this->getMock( $this->_cache, [ 'addServer' ] );
+    $memcache = $this->getMockBuilder( $this->_cache )
+                     ->setMethods( [ 'addServer' ] )
+                     ->getMock();
 
     $host     = 'cache1.com';
     $port     = 11211;
@@ -167,7 +178,9 @@ class MemcacheAdapterTest extends BaseTest {
    */
   public function addServers() {
 
-    $mock = $this->getMock( $this->_target, [ 'addServer' ] );
+    $mock = $this->getMockBuilder( $this->_target )
+                 ->setMethods( [ 'addServer' ] )
+                 ->getMock();
 
     $mock->expects( $this->exactly( count( $this->_server_config ) ) )
       ->method( 'addServer' );
@@ -196,7 +209,9 @@ class MemcacheAdapterTest extends BaseTest {
     } );
 
 
-    $memcache = $this->getMock( $this->_cache, [ 'getExtendedStats' ] );
+    $memcache = $this->getMockBuilder( $this->_cache )
+                     ->setMethods( [ 'getExtendedStats' ] )
+                     ->getMock();
 
     $memcache->expects( $this->atLeastOnce() )
       ->method( 'getExtendedStats' )
@@ -278,8 +293,6 @@ class MemcacheAdapterTest extends BaseTest {
     ];
 
     $key_results = [ $key1, $key2, $key3, $key4, $key5, $key6, $key7, $key8, $key9, $key10, $key11, $key12, $key13, $key14, $key15, $key16 ];
-
-
 
     $partial_slabs = [
         $server1 => [
