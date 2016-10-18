@@ -19,8 +19,8 @@ class AdapterAbstractTest extends BaseTest {
     $value  = 123;
     $return = 'arbitrary';
     $args   = ( $with_events )
-      ? [ $this->getMock( EventDispatcher::class ) ]
-      : [];
+              ? [ $this->createMock( EventDispatcher::class ) ]
+              : [];
 
     $mock = $this->_getAbstractMock( AdapterAbstract::class, [], $args );
 
@@ -29,8 +29,8 @@ class AdapterAbstractTest extends BaseTest {
       ->will( $this->returnValue( $return ) );
 
     $result = ( $multiple )
-      ? $mock->$name( $keys, $value )
-      : $mock->$name( $key, $value );
+              ? $mock->$name( $keys, $value )
+              : $mock->$name( $key, $value );
 
     $this->assertEquals( $return, $result );
 
@@ -69,7 +69,7 @@ class AdapterAbstractTest extends BaseTest {
    */
   public function bindEvent( $event_name ) {
 
-    $dispatcher = $this->getMock( EventDispatcher::class );
+    $dispatcher = $this->createMock( EventDispatcher::class );
     $mock       = $this->_getAbstractMock( AdapterAbstract::class, [ '_buildEventDispatcher' ], [ $dispatcher ] );
     $handler    = ( function() {} );
 
@@ -93,7 +93,7 @@ class AdapterAbstractTest extends BaseTest {
   public function bindBuildDispatcher() {
 
     $mock       = $this->_getAbstractMock( AdapterAbstract::class, [ '_buildEventDispatcher' ] );
-    $dispatcher = $this->getMock( EventDispatcher::class );
+    $dispatcher = $this->createMock( EventDispatcher::class );
     $callable   = ( function() {} );
 
     $mock->expects( $this->once() )

@@ -1,4 +1,4 @@
-web:
+seven:
   build: .
   links:
    - cache
@@ -8,7 +8,16 @@ web:
     CFG_APP_DEBUG: 1
     CFG_CACHE_HOST: cache
     CFG_CACHE_PORT: 11211
-    FPM_BUSY_BUFFER: 16k
-
+fivesix:
+  build: .
+  dockerfile: Dockerfile-56
+  links:
+   - cache
+  volumes:
+   - ./:/app
+  environment:
+    CFG_APP_DEBUG: 1
+    CFG_CACHE_HOST: cache
+    CFG_CACHE_PORT: 11211
 cache:
-  image: borja/docker-memcached
+  image: behance/docker-memcached
