@@ -1,23 +1,21 @@
 seven:
-  build: .
+  extends:
+    file: ./docker-compose.base.yml
+    service: application
   links:
    - cache
-  volumes:
-   - ./:/app
-  environment:
-    CFG_APP_DEBUG: 1
-    CFG_CACHE_HOST: cache
-    CFG_CACHE_PORT: 11211
+   - redis
+
 fivesix:
-  build: .
   dockerfile: Dockerfile-56
+  extends:
+    file: ./docker-compose.base.yml
+    service: application
   links:
    - cache
-  volumes:
-   - ./:/app
-  environment:
-    CFG_APP_DEBUG: 1
-    CFG_CACHE_HOST: cache
-    CFG_CACHE_PORT: 11211
+   - redis
+
 cache:
   image: behance/docker-memcached
+redis:
+  image: redis

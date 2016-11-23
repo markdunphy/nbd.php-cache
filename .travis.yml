@@ -1,10 +1,15 @@
-sudo: false
-language: php
-php:
-  - 5.6
-  - 7.0
+sudo: required
+services:
+  - docker
+env:
+  DOCKER_COMPOSE_VERSION: 1.8.2
 
-before_script: phpenv config-add .travis.php.ini
+before_install:
+  - docker pull bryanlatten/docker-php:latest
+  - docker pull bryanlatten/docker-php:9.2-legacy
+  - docker-compose build seven
+  - docker-compose build fivesix
 
-install:
-  - composer install
+script:
+  - docker-compose run seven
+  - docker-compose run fivesix
