@@ -1,4 +1,4 @@
-FROM bryanlatten/docker-php:9.0-legacy
+FROM bryanlatten/docker-php:5.6
 MAINTAINER Bryan Latten <latten@adobe.com>
 
 RUN phpenmod redis

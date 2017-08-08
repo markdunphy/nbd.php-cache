@@ -228,9 +228,9 @@ class MemcachedAdapter extends AdapterAbstract {
    *
    * @see http://php.net/manual/en/memcache.getstats.php
    */
-  protected function _getStats() {
+  protected function _getStats( $type = 'items' ) {
 
-    return $this->_connection->getStats();
+    return $this->_connection->getStats( $type );
 
   } // _getStats
 

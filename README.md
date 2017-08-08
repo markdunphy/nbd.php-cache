@@ -100,5 +100,6 @@ Unit testing, requires `memcache`, `memcached`, and `redis` plugins:
 <tr><td>getAllKeys()</td><td>Retrieves the full keylist from server(s)</td></tr>
 <tr><td>getStats()</td><td>Retrieves usage stats from server(s)</td></tr>
 <tr><td>bind( $event_name, callable $handler )</td><td>Provide handlers for cache-specific events</td></tr>
+<tr><td>getBoundEvents()</td><td>Gets a list of the events that are bound</td></tr>
 <tr><td>close()</td><td>Disconnects from active connections</td></tr>
 </table>

@@ -150,9 +150,10 @@ interface AdapterInterface {
 
 
   /**
+   * @param  string $type
    * @return array
    */
-  public function getStats();
+  public function getStats( $type = 'items' );
 
 
   /**
@@ -160,6 +161,12 @@ interface AdapterInterface {
    * @param callable $handler
    */
   public function bindEvent( $event_name, callable $handler );
+
+
+  /**
+   * @return array
+   */
+  public function getBoundEvents();
 
 
   /**

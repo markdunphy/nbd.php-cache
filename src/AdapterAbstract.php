@@ -287,10 +287,10 @@ abstract class AdapterAbstract implements AdapterInterface {
   /**
    * {@inheritDoc}
    */
-  public function getStats() {
+  public function getStats( $type = 'items' ) {
 
-    $action = ( function() {
-      return $this->_getStats();
+    $action = ( function() use ( $type ) {
+      return $this->_getStats( $type );
     } );
 
     return $this->_execute( $action, __FUNCTION__, '' );
@@ -311,6 +311,18 @@ abstract class AdapterAbstract implements AdapterInterface {
     $this->_dispatcher->addListener( $event_name, $handler );
 
   } // bindEvent
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public function getBoundEvents() {
+
+    return ( $this->_dispatcher )
+        ? $this->_dispatcher->getListeners()
+        : [];
+
+  } // getBoundEvents
 
 
   /**
