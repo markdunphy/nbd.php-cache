@@ -42,7 +42,7 @@ class RedisAdapter extends AdapterAbstract {
   public function addServer( $host, $port ) {
 
     try {
-      $this->_connection->pconnect( $host, $port );
+      @$this->_connection->pconnect( $host, $port );
     }
     catch( \RedisException $e ) {
       // TODO: since memcache/memcached adapters do not throw exceptions because

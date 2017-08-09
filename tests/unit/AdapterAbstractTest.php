@@ -86,6 +86,29 @@ class AdapterAbstractTest extends BaseTest {
 
 
   /**
+   * @test
+   */
+  public function getBoundEvents() {
+
+    $mock = $this->_getAbstractMock( AdapterAbstract::class );
+
+    $this->assertEquals( [], $mock->getBoundEvents() );
+
+    $handler_1 = ( function() {} );
+    $handler_2 = ( function() {} );
+
+    $mock->bindEvent( 'test_event_1', $handler_1 );
+    $mock->bindEvent( 'test_event_2', $handler_2 );
+
+    $events = $mock->getBoundEvents();
+
+    $this->assertSame( $handler_1, $events[ 'test_event_1' ][0] );
+    $this->assertSame( $handler_2, $events[ 'test_event_2' ][0] );
+
+  } // getBoundEvents
+
+
+  /**
    * Ensures calling ->bindEvent() with a preassigned event dispatcher will generate one
    *
    * @test
