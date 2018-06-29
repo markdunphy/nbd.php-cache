@@ -2,7 +2,7 @@
 
 namespace Behance\NBD\Cache\Test;
 
-abstract class BaseTest extends \PHPUnit_Framework_TestCase {
+abstract class BaseTest extends \PHPUnit\Framework\TestCase {
 
   /**
    * @param string $class

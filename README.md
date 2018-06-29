@@ -74,8 +74,8 @@ Unit testing, requires `memcache`, `memcached`, and `redis` plugins:
 2. `./vendor/bin/phpunit`
 
 (preferred) Integration testing: leverages docker / docker-compose, using actual service containers for memcache and redis)
-1. (on PHP 7.0) `docker-compose build seven && docker-compose run seven`
-2. (on PHP 5.6) `docker-compose build fivesix && docker-compose run fivesix`
+1. (on PHP 7.1) `docker-compose build seven && docker-compose run sevenone`
+1. (on PHP 7.2) `docker-compose build seven && docker-compose run seventwo`
 
 ### Operations
 ---

@@ -1,0 +1,6 @@
+FROM behance/docker-php:7.2
+
+RUN phpenmod redis
+COPY ./ /app
+
+RUN cd /app && composer install
