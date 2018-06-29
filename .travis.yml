@@ -5,11 +5,9 @@ env:
   DOCKER_COMPOSE_VERSION: 1.8.2
 
 before_install:
-  - docker pull bryanlatten/docker-php:7.1
-  - docker pull bryanlatten/docker-php:5.6
-  - docker-compose build seven
-  - docker-compose build fivesix
+  - docker-compose build sevenone
+  - docker-compose build seventwo
 
 script:
-  - docker-compose run seven
-  - docker-compose run fivesix
+  - docker-compose run sevenone
+  - docker-compose run seventwo
