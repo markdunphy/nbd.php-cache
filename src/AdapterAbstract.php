@@ -22,14 +22,13 @@ namespace Behance\NBD\Cache;
 
 use Behance\NBD\Cache\Events\QueryEvent;
 use Behance\NBD\Cache\Events\QueryFailEvent;
-
 use Behance\NBD\Cache\Exceptions\DuplicateActionException;
 use Behance\NBD\Cache\Exceptions\OperationNotSupportedException;
-
+use Psr\Cache;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
-abstract class AdapterAbstract implements AdapterInterface {
+abstract class AdapterAbstract implements AdapterInterface, Cache\CacheItemPoolInterface {
 
   /**
    * @var Symfony\Component\EventDispatcher\EventDispatcherInterface
@@ -351,6 +350,57 @@ abstract class AdapterAbstract implements AdapterInterface {
     return $this->_close();
 
   }
+
+  public function getItem(string $key) {
+    return new CacheItem($key, function() use ($key) {
+      return $this->get($key);
+    });
+  }
+
+  public function getItems(array $keys = []) : array {
+    $items = [];
+    $results = $this->getMulti($keys);
+
+    foreach ($keys as $key) {
+      $item = $results[$key] ?: [false, null, null];
+      $items[$key] = new CacheItem($key, function() use ($item) {
+        return $item;
+      });
+    }
+
+    return $items;
+  }
+
+  public function hasItem($key) : bool {
+    return $this->get($key) !== false;
+  }
+
+  public function clear() : bool {
+    return (bool) $this->flush();
+  }
+
+  public function deleteItem($key) {
+    return (bool) $this->delete($key);
+  }
+
+  public function deleteItems(array $keys) : bool {
+    return (bool) $this->deleteMulti($keys);
+  }
+
+  public function save(CacheItem\CacheItemInterface $item) {
+    // $key, $value, $ttl = AdapterInterface::EXPIRATION_DEFAULT
+
+    $this->set($item->getKey(), $item->get(), $item->getExpire)
+  }
+
+  public function saveDeferred(Cache\CacheItemInterface $item) {
+
+  }
+
+  public function commit() {
+
+  }
+
 
 
   /**

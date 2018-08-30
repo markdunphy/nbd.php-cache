@@ -19,7 +19,8 @@
     "require": {
         "symfony/event-dispatcher": "~2.6 || ~3.0",
         "php": ">=7.1",
-        "behance/php-sniffs": "^3.0"
+        "behance/php-sniffs": "^3.0",
+        "psr/cache": "^1.0"
     },
     "require-dev": {
         "phpunit/phpunit": "~6.0"
