@@ -1,5 +1,23 @@
 <?php
 
+/*************************************************************************
+ * ADOBE CONFIDENTIAL
+ * ___________________
+ *
+ * Copyright 2018 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
+ *************************************************************************/
+
+
 namespace Behance\NBD\Cache;
 
 use Behance\NBD\Cache\Test\BaseTest;
@@ -12,77 +30,77 @@ class AdapterAbstractTest extends BaseTest {
    * @test
    * @dataProvider operationProvider
    */
-  public function operation( $name, $multiple, $with_events ) {
+  public function operation($name, $multiple, $with_events) {
 
-    $key    = 'abc';
-    $keys   = [ 'def', 'ghi', 'jkl', 'mnop' ];
-    $value  = 123;
+    $key = 'abc';
+    $keys = ['def', 'ghi', 'jkl', 'mnop'];
+    $value = 123;
     $return = 'arbitrary';
-    $args   = ( $with_events )
-              ? [ $this->createMock( EventDispatcher::class ) ]
+    $args = ($with_events)
+              ? [$this->createMock(EventDispatcher::class)]
               : [];
 
-    $mock = $this->_getAbstractMock( AdapterAbstract::class, [], $args );
+    $mock = $this->_getAbstractMock(AdapterAbstract::class, [], $args);
 
-    $mock->expects( $this->once() )
-      ->method( '_' . $name )
-      ->will( $this->returnValue( $return ) );
+    $mock->expects($this->once())
+      ->method('_' . $name)
+      ->will($this->returnValue($return));
 
-    $result = ( $multiple )
-              ? $mock->$name( $keys, $value )
-              : $mock->$name( $key, $value );
+    $result = ($multiple)
+              ? $mock->$name($keys, $value)
+              : $mock->$name($key, $value);
 
-    $this->assertEquals( $return, $result );
+    $this->assertEquals($return, $result);
 
-  } // operation
+  }
 
 
   public function operationProvider() {
 
     return [
-        [ 'get',         false, false ],
-        [ 'get',         false, true ],
-        [ 'getMulti',    true,  false ],
-        [ 'getMulti',    true,  true ],
-        [ 'set',         false, false ],
-        [ 'set',         false, true ],
-        [ 'add',         false, false ],
-        [ 'add',         false, true ],
-        [ 'replace',     false, false ],
-        [ 'replace',     false, true ],
-        [ 'increment',   false, false ],
-        [ 'increment',   false, true ],
-        [ 'decrement',   false, false ],
-        [ 'decrement',   false, true ],
-        [ 'delete',      false, false ],
-        [ 'delete',      false, true ],
-        [ 'deleteMulti', true,  false ],
-        [ 'deleteMulti', true,  true ],
+      ['get', false, false],
+      ['get', false, true],
+      ['getMulti', true, false],
+      ['getMulti', true, true],
+      ['set', false, false],
+      ['set', false, true],
+      ['add', false, false],
+      ['add', false, true],
+      ['replace', false, false],
+      ['replace', false, true],
+      ['increment', false, false],
+      ['increment', false, true],
+      ['decrement', false, false],
+      ['decrement', false, true],
+      ['delete', false, false],
+      ['delete', false, true],
+      ['deleteMulti', true, false],
+      ['deleteMulti', true, true],
     ];
 
-  } // operationProvider
+  }
 
 
   /**
    * @test
    * @dataProvider eventNameProvider
    */
-  public function bindEvent( $event_name ) {
+  public function bindEvent($event_name) {
 
-    $dispatcher = $this->createMock( EventDispatcher::class );
-    $mock       = $this->_getAbstractMock( AdapterAbstract::class, [ '_buildEventDispatcher' ], [ $dispatcher ] );
-    $handler    = ( function() {} );
+    $dispatcher = $this->createMock(EventDispatcher::class);
+    $mock = $this->_getAbstractMock(AdapterAbstract::class, ['_buildEventDispatcher'], [$dispatcher]);
+    $handler = (function () {});
 
-    $mock->expects( $this->never() )
-      ->method( '_buildEventDispatcher' );
+    $mock->expects($this->never())
+      ->method('_buildEventDispatcher');
 
-    $dispatcher->expects( $this->once() )
-      ->method( 'addListener' )
-      ->with( $event_name, $handler );
+    $dispatcher->expects($this->once())
+      ->method('addListener')
+      ->with($event_name, $handler);
 
-    $mock->bindEvent( $event_name, $handler );
+    $mock->bindEvent($event_name, $handler);
 
-  } // bindEvent
+  }
 
 
   /**
@@ -90,22 +108,22 @@ class AdapterAbstractTest extends BaseTest {
    */
   public function getBoundEvents() {
 
-    $mock = $this->_getAbstractMock( AdapterAbstract::class );
+    $mock = $this->_getAbstractMock(AdapterAbstract::class);
 
-    $this->assertEquals( [], $mock->getBoundEvents() );
+    $this->assertEquals([], $mock->getBoundEvents());
 
-    $handler_1 = ( function() {} );
-    $handler_2 = ( function() {} );
+    $handler_1 = (function () {});
+    $handler_2 = (function () {});
 
-    $mock->bindEvent( 'test_event_1', $handler_1 );
-    $mock->bindEvent( 'test_event_2', $handler_2 );
+    $mock->bindEvent('test_event_1', $handler_1);
+    $mock->bindEvent('test_event_2', $handler_2);
 
     $events = $mock->getBoundEvents();
 
-    $this->assertSame( $handler_1, $events[ 'test_event_1' ][0] );
-    $this->assertSame( $handler_2, $events[ 'test_event_2' ][0] );
+    $this->assertSame($handler_1, $events['test_event_1'][0]);
+    $this->assertSame($handler_2, $events['test_event_2'][0]);
 
-  } // getBoundEvents
+  }
 
 
   /**
@@ -115,21 +133,21 @@ class AdapterAbstractTest extends BaseTest {
    */
   public function bindBuildDispatcher() {
 
-    $mock       = $this->_getAbstractMock( AdapterAbstract::class, [ '_buildEventDispatcher' ] );
-    $dispatcher = $this->createMock( EventDispatcher::class );
-    $callable   = ( function() {} );
+    $mock = $this->_getAbstractMock(AdapterAbstract::class, ['_buildEventDispatcher']);
+    $dispatcher = $this->createMock(EventDispatcher::class);
+    $callable = (function () {});
 
-    $mock->expects( $this->once() )
-      ->method( '_buildEventDispatcher' )
-      ->will( $this->returnValue( $dispatcher ) );
+    $mock->expects($this->once())
+      ->method('_buildEventDispatcher')
+      ->will($this->returnValue($dispatcher));
 
-    $mock->bindEvent( AdapterInterface::EVENT_QUERY_BEFORE, $callable );
+    $mock->bindEvent(AdapterInterface::EVENT_QUERY_BEFORE, $callable);
 
     // Ensure calling it unmocked does not explode
-    $vanilla_mock = $this->_getAbstractMock( AdapterAbstract::class );
-    $vanilla_mock->bindEvent( AdapterInterface::EVENT_QUERY_BEFORE, $callable );
+    $vanilla_mock = $this->_getAbstractMock(AdapterAbstract::class);
+    $vanilla_mock->bindEvent(AdapterInterface::EVENT_QUERY_BEFORE, $callable);
 
-  } // bindBuildDispatcher
+  }
 
 
   /**
@@ -138,11 +156,11 @@ class AdapterAbstractTest extends BaseTest {
   public function eventNameProvider() {
 
     return [
-        [ AdapterInterface::EVENT_QUERY_BEFORE ],
-        [ AdapterInterface::EVENT_QUERY_AFTER ],
+      [AdapterInterface::EVENT_QUERY_BEFORE],
+      [AdapterInterface::EVENT_QUERY_AFTER],
     ];
 
-  } // eventNameProvider
+  }
 
 
   /**
@@ -150,15 +168,15 @@ class AdapterAbstractTest extends BaseTest {
    */
   public function isBuffering() {
 
-    $mock = $this->_getAbstractMock( AdapterAbstract::class );
+    $mock = $this->_getAbstractMock(AdapterAbstract::class);
 
-    $this->assertFalse( $mock->isBuffering() );
+    $this->assertFalse($mock->isBuffering());
 
     $mock->beginBuffer();
 
-    $this->assertTrue( $mock->isBuffering() );
+    $this->assertTrue($mock->isBuffering());
 
-  } // isBuffering
+  }
 
 
   /**
@@ -167,24 +185,23 @@ class AdapterAbstractTest extends BaseTest {
    * @test
    * @dataProvider opBoolProvider
    */
-  public function isBufferingAfter( $commit ) {
+  public function isBufferingAfter($commit) {
 
-    $mock = $this->_getAbstractMock( AdapterAbstract::class );
+    $mock = $this->_getAbstractMock(AdapterAbstract::class);
 
     $mock->beginBuffer();
 
-    $this->assertTrue( $mock->isBuffering() );
+    $this->assertTrue($mock->isBuffering());
 
-    if ( $commit ) {
+    if ($commit) {
       $mock->commitBuffer();
-    }
-    else {
+    } else {
       $mock->rollbackBuffer();
     }
 
-    $this->assertFalse( $mock->isBuffering() );
+    $this->assertFalse($mock->isBuffering());
 
-  } // isBufferingAfter
+  }
 
 
   /**
@@ -193,11 +210,11 @@ class AdapterAbstractTest extends BaseTest {
   public function opBoolProvider() {
 
     return [
-        'Commit'   => [ true ],
-        'Rollback' => [ false ],
+      'Commit' => [true],
+      'Rollback' => [false],
     ];
 
-  } // opBoolProvider
+  }
 
 
   /**
@@ -206,67 +223,67 @@ class AdapterAbstractTest extends BaseTest {
    */
   public function beginBufferingDuplicate() {
 
-    $mock = $this->_getAbstractMock( AdapterAbstract::class );
+    $mock = $this->_getAbstractMock(AdapterAbstract::class);
 
     $mock->beginBuffer();
     $mock->beginBuffer();
 
-  } // beginBufferingDuplicate
+  }
 
 
   /**
    * @test
    * @dataProvider cacheGetSetProvider
    */
-  public function bufferedGetSetRollback( array $key_values, $expected_key, $expected_value ) {
+  public function bufferedGetSetRollback(array $key_values, $expected_key, $expected_value) {
 
-    $mock  = $this->_getAbstractMock( AdapterAbstract::class, [ '_performExecute' ] );
+    $mock = $this->_getAbstractMock(AdapterAbstract::class, ['_performExecute']);
 
     // Ensure sets never hit adapter
-    $mock->expects( $this->never() )
-      ->method( '_performExecute' );
+    $mock->expects($this->never())
+      ->method('_performExecute');
 
     $mock->beginBuffer();
 
-    foreach ( $key_values as $key => $value ) {
-      $mock->set( $key, $value );
+    foreach ($key_values as $key => $value) {
+      $mock->set($key, $value);
     }
 
-    $this->assertEquals( $expected_value, $mock->get( $expected_key ) );
-    $this->assertEquals( [ $expected_key => $expected_value ], $mock->getMulti( [ $expected_key ] ) );
-    $this->assertEquals( $key_values, $mock->getMulti( array_keys( $key_values ) ) );
+    $this->assertEquals($expected_value, $mock->get($expected_key));
+    $this->assertEquals([$expected_key => $expected_value], $mock->getMulti([$expected_key]));
+    $this->assertEquals($key_values, $mock->getMulti(array_keys($key_values)));
 
     $mock->rollbackBuffer();
 
-  } // bufferedGetSetRollback
+  }
 
 
   /**
    * @test
    * @dataProvider cacheGetSetProvider
    */
-  public function bufferedGetSetCommit( array $key_values, $expected_key, $expected_value ) {
+  public function bufferedGetSetCommit(array $key_values, $expected_key, $expected_value) {
 
-    $mock  = $this->_getAbstractMock( AdapterAbstract::class, [ '_performExecute' ] );
+    $mock = $this->_getAbstractMock(AdapterAbstract::class, ['_performExecute']);
 
     // TODO: figure out how to match keys in-order of being set during commit
-    $mock->expects( $this->exactly( count( $key_values ) ) )
-      ->method( '_performExecute' )
-      ->with( $this->anything(), 'set', $this->anything(), true );
+    $mock->expects($this->exactly(count($key_values)))
+      ->method('_performExecute')
+      ->with($this->anything(), 'set', $this->anything(), true);
 
     $mock->beginBuffer();
 
-    foreach ( $key_values as $key => $value ) {
-      $mock->set( $key, $value );
+    foreach ($key_values as $key => $value) {
+      $mock->set($key, $value);
     }
 
     // Creating operations, just to ensure these don't get buffered accidentally
-    $this->assertEquals( $expected_value, $mock->get( $expected_key ) );
-    $this->assertEquals( [ $expected_key => $expected_value ], $mock->getMulti( [ $expected_key ] ) );
+    $this->assertEquals($expected_value, $mock->get($expected_key));
+    $this->assertEquals([$expected_key => $expected_value], $mock->getMulti([$expected_key]));
 
     $mock->commitBuffer();
 
-  } // bufferedGetSetCommit
+  }
 
 
   /**
@@ -276,113 +293,109 @@ class AdapterAbstractTest extends BaseTest {
    */
   public function cacheGetSetProvider() {
 
-    $key   = 'abcdefg';
+    $key = 'abcdefg';
     $value = 123456;
 
-    $map1  = [
-        'abc' => 123,
-        'def' => 456,
-        $key  => $value
+    $map1 = [
+      'abc' => 123,
+      'def' => 456,
+      $key => $value
     ];
 
     $map2 = [
-        $key  => $value,
-        'abc' => 123,
-        'def' => 456,
+      $key => $value,
+      'abc' => 123,
+      'def' => 456,
     ];
 
     $map3 = [
-        'abc' => 123,
-        $key  => $value,
-        'def' => 456,
+      'abc' => 123,
+      $key => $value,
+      'def' => 456,
     ];
 
     return [
-        [ $map1, $key, $value ],
-        [ $map2, $key, $value ],
-        [ $map3, $key, $value ],
+      [$map1, $key, $value],
+      [$map2, $key, $value],
+      [$map3, $key, $value],
     ];
 
-  } // cacheGetSetProvider
+  }
 
 
   /**
    * @test
    * @dataProvider cacheSetDeleteGetProvider
    */
-  public function bufferedSetDeleteGet( array $key_values, array $deleted_keys, $expected_key, $expected_value, $multi_delete ) {
+  public function bufferedSetDeleteGet(array $key_values, array $deleted_keys, $expected_key, $expected_value, $multi_delete) {
 
-    $mock  = $this->_getAbstractMock( AdapterAbstract::class, [ '_performExecute' ] );
+    $mock = $this->_getAbstractMock(AdapterAbstract::class, ['_performExecute']);
 
     // Ensure set's/delete's never actually hit
-    $mock->expects( $this->never() )
-      ->method( '_performExecute' );
+    $mock->expects($this->never())
+      ->method('_performExecute');
 
     $mock->beginBuffer();
 
-    foreach ( $key_values as $key => $value ) {
-      $mock->set( $key, $value );
+    foreach ($key_values as $key => $value) {
+      $mock->set($key, $value);
     }
 
     // Ensure buffer is consistent whether or not keys were deleted via delete() or deleteMulti()
-    if ( $multi_delete ) {
-      $mock->deleteMulti( $deleted_keys );
+    if ($multi_delete) {
+      $mock->deleteMulti($deleted_keys);
+    } else {
+      foreach ($deleted_keys as $deleted_key) {
+        $mock->delete($deleted_key);
+      }
     }
 
-    else {
-      foreach ( $deleted_keys as $deleted_key ) {
-        $mock->delete( $deleted_key );
-      }
-    } // else (!multi_delete)
-
-    $this->assertEquals( $expected_value, $mock->get( $expected_key ) );
-    $this->assertEquals( [ $expected_key => $expected_value ], $mock->getMulti( [ $expected_key ] ) );
+    $this->assertEquals($expected_value, $mock->get($expected_key));
+    $this->assertEquals([$expected_key => $expected_value], $mock->getMulti([$expected_key]));
 
     $mock->rollbackBuffer();
 
-  } // bufferedSetDeleteGet
+  }
 
 
   /**
    * @test
    * @dataProvider cacheSetDeleteGetProvider
    */
-  public function bufferedSetDeleteGetCommit( array $key_values, array $deleted_keys, $expected_key, $expected_value, $multi_delete ) {
+  public function bufferedSetDeleteGetCommit(array $key_values, array $deleted_keys, $expected_key, $expected_value, $multi_delete) {
 
-    $mock  = $this->_getAbstractMock( AdapterAbstract::class, [ '_performExecute' ] );
+    $mock = $this->_getAbstractMock(AdapterAbstract::class, ['_performExecute']);
 
     // Ensure set's/delete's never actually hit
-    $ops = ( $multi_delete )
-           ? count( $key_values ) + 1
-           : count( $key_values ) + count( $deleted_keys );
+    $ops = ($multi_delete)
+           ? count($key_values) + 1
+           : count($key_values) + count($deleted_keys);
 
-    $mock->expects( $this->exactly( $ops ) )
-      ->method( '_performExecute' );
+    $mock->expects($this->exactly($ops))
+      ->method('_performExecute');
 
     $mock->beginBuffer();
 
-    foreach ( $key_values as $key => $value ) {
-      $mock->set( $key, $value );
+    foreach ($key_values as $key => $value) {
+      $mock->set($key, $value);
     }
 
     // Ensure buffer is consistent whether or not keys were deleted via delete() or deleteMulti()
-    if ( $multi_delete ) {
-      $mock->deleteMulti( $deleted_keys );
+    if ($multi_delete) {
+      $mock->deleteMulti($deleted_keys);
+    } else {
+      foreach ($deleted_keys as $deleted_key) {
+        $mock->delete($deleted_key);
+      }
     }
 
-    else {
-      foreach ( $deleted_keys as $deleted_key ) {
-        $mock->delete( $deleted_key );
-      }
-    } // else (!multi_delete)
-
     // Creating operations, just to ensure these don't get buffered accidentally
-    $this->assertEquals( $expected_value, $mock->get( $expected_key ) );
-    $this->assertEquals( [ $expected_key => $expected_value ], $mock->getMulti( [ $expected_key ] ) );
+    $this->assertEquals($expected_value, $mock->get($expected_key));
+    $this->assertEquals([$expected_key => $expected_value], $mock->getMulti([$expected_key]));
 
     $mock->commitBuffer();
 
-  } // bufferedSetDeleteGetCommit
+  }
 
 
   /**
@@ -392,63 +405,63 @@ class AdapterAbstractTest extends BaseTest {
    */
   public function cacheSetDeleteGetProvider() {
 
-    $key   = 'abcdefg';
+    $key = 'abcdefg';
     $value = 123456;
 
-    $map1  = [
-        'abc' => 123,
-        'def' => 456,
-        $key  => $value
+    $map1 = [
+      'abc' => 123,
+      'def' => 456,
+      $key => $value
     ];
 
     $map2 = [
-        $key  => $value,
-        'abc' => 123,
-        'def' => 456,
+      $key => $value,
+      'abc' => 123,
+      'def' => 456,
     ];
 
     $map3 = [
-        'abc' => 123,
-        $key  => $value,
-        'def' => 456,
+      'abc' => 123,
+      $key => $value,
+      'def' => 456,
     ];
 
     return [
-        [ $map1, [ 'abc' ], $key, $value, true ],
-        [ $map1, [ 'abc' ], $key, $value, false ],
-        [ $map1, [ 'def' ], $key, $value, true ],
-        [ $map1, [ 'def' ], $key, $value, false ],
-        [ $map1, [ 'abc', 'def' ], $key, $value, true ],
-        [ $map1, [ 'abc', 'def' ], $key, $value, false ],
-        [ $map1, [ $key ], $key, false, true ],
-        [ $map1, [ $key ], $key, false, false ],
-        [ $map1, [ 'abc', 'def', $key ], $key, false, true ],
-        [ $map1, [ 'abc', 'def', $key ], $key, false, false ],
+      [$map1, ['abc'], $key, $value, true],
+      [$map1, ['abc'], $key, $value, false],
+      [$map1, ['def'], $key, $value, true],
+      [$map1, ['def'], $key, $value, false],
+      [$map1, ['abc', 'def'], $key, $value, true],
+      [$map1, ['abc', 'def'], $key, $value, false],
+      [$map1, [$key], $key, false, true],
+      [$map1, [$key], $key, false, false],
+      [$map1, ['abc', 'def', $key], $key, false, true],
+      [$map1, ['abc', 'def', $key], $key, false, false],
 
-        [ $map2, [ 'abc' ], $key, $value, true ],
-        [ $map2, [ 'abc' ], $key, $value, false ],
-        [ $map2, [ 'def' ], $key, $value, true ],
-        [ $map2, [ 'def' ], $key, $value, false ],
-        [ $map2, [ 'abc', 'def' ], $key, $value, true ],
-        [ $map2, [ 'abc', 'def' ], $key, $value, false ],
-        [ $map2, [ $key ], $key, false, true ],
-        [ $map2, [ $key ], $key, false, false ],
-        [ $map2, [ 'abc', 'def', $key ], $key, false, true ],
-        [ $map2, [ 'abc', 'def', $key ], $key, false, false ],
+      [$map2, ['abc'], $key, $value, true],
+      [$map2, ['abc'], $key, $value, false],
+      [$map2, ['def'], $key, $value, true],
+      [$map2, ['def'], $key, $value, false],
+      [$map2, ['abc', 'def'], $key, $value, true],
+      [$map2, ['abc', 'def'], $key, $value, false],
+      [$map2, [$key], $key, false, true],
+      [$map2, [$key], $key, false, false],
+      [$map2, ['abc', 'def', $key], $key, false, true],
+      [$map2, ['abc', 'def', $key], $key, false, false],
 
-        [ $map3, [ 'abc' ], $key, $value, true ],
-        [ $map3, [ 'abc' ], $key, $value, false ],
-        [ $map3, [ 'def' ], $key, $value, true ],
-        [ $map3, [ 'def' ], $key, $value, false ],
-        [ $map3, [ 'abc', 'def' ], $key, $value, true ],
-        [ $map3, [ 'abc', 'def' ], $key, $value, false ],
-        [ $map3, [ $key ], $key, false, true ],
-        [ $map3, [ $key ], $key, false, false ],
-        [ $map3, [ 'abc', 'def', $key ], $key, false, true ],
-        [ $map3, [ 'abc', 'def', $key ], $key, false, false ],
+      [$map3, ['abc'], $key, $value, true],
+      [$map3, ['abc'], $key, $value, false],
+      [$map3, ['def'], $key, $value, true],
+      [$map3, ['def'], $key, $value, false],
+      [$map3, ['abc', 'def'], $key, $value, true],
+      [$map3, ['abc', 'def'], $key, $value, false],
+      [$map3, [$key], $key, false, true],
+      [$map3, [$key], $key, false, false],
+      [$map3, ['abc', 'def', $key], $key, false, true],
+      [$map3, ['abc', 'def', $key], $key, false, false],
     ];
 
-  } // cacheSetDeleteGetProvider
+  }
 
 
   /**
@@ -457,25 +470,25 @@ class AdapterAbstractTest extends BaseTest {
    * @test
    * @dataProvider cacheBufferUnbufferProvider
    */
-  public function unbufferedSetGet( array $key_values, $expected_key, $expected_value ) {
+  public function unbufferedSetGet(array $key_values, $expected_key, $expected_value) {
 
-    $mock  = $this->_getAbstractMock( AdapterAbstract::class, [ '_performExecute' ] );
+    $mock = $this->_getAbstractMock(AdapterAbstract::class, ['_performExecute']);
 
-    $mock->expects( $this->once() )
-      ->method( '_performExecute' )
-      ->with( $this->anything(), 'get', $expected_key, false )
-      ->will( $this->returnValue( $expected_value ) );
+    $mock->expects($this->once())
+      ->method('_performExecute')
+      ->with($this->anything(), 'get', $expected_key, false)
+      ->will($this->returnValue($expected_value));
 
     $mock->beginBuffer();
 
-    foreach ( $key_values as $key => $value ) {
-      $mock->set( $key, $value );
+    foreach ($key_values as $key => $value) {
+      $mock->set($key, $value);
     }
 
-    $this->assertEquals( $expected_value, $mock->get( $expected_key ) );
-    $this->assertEquals( $key_values, $mock->getMulti( array_keys( $key_values ) ) );
+    $this->assertEquals($expected_value, $mock->get($expected_key));
+    $this->assertEquals($key_values, $mock->getMulti(array_keys($key_values)));
 
-  } // unbufferedSetGet
+  }
 
 
   /**
@@ -484,30 +497,30 @@ class AdapterAbstractTest extends BaseTest {
    * @test
    * @dataProvider cacheBufferUnbufferProvider
    */
-  public function unbufferedSetGetMulti( array $key_values, $expected_key, $expected_value ) {
+  public function unbufferedSetGetMulti(array $key_values, $expected_key, $expected_value) {
 
-    $mock  = $this->_getAbstractMock( AdapterAbstract::class, [ '_performExecute' ] );
+    $mock = $this->_getAbstractMock(AdapterAbstract::class, ['_performExecute']);
 
-    $mock->expects( $this->once() )
-      ->method( '_performExecute' )
-      ->with( $this->anything(), 'getMulti', [ $expected_key ], false )
-      ->will( $this->returnValue( [ $expected_key => $expected_value ] ) );
+    $mock->expects($this->once())
+      ->method('_performExecute')
+      ->with($this->anything(), 'getMulti', [$expected_key], false)
+      ->will($this->returnValue([$expected_key => $expected_value]));
 
     $mock->beginBuffer();
 
-    foreach ( $key_values as $key => $value ) {
-      $mock->set( $key, $value );
+    foreach ($key_values as $key => $value) {
+      $mock->set($key, $value);
     }
 
-    $keys   = array_keys( $key_values );
+    $keys = array_keys($key_values);
     $keys[] = $expected_key;
 
     // Add expected into full mix for comparison
-    $key_values[ $expected_key ] = $expected_value;
+    $key_values[$expected_key] = $expected_value;
 
-    $this->assertEquals( $key_values, $mock->getMulti( $keys ) );
+    $this->assertEquals($key_values, $mock->getMulti($keys));
 
-  } // unbufferedSetGetMulti
+  }
 
 
   /**
@@ -515,20 +528,20 @@ class AdapterAbstractTest extends BaseTest {
    */
   public function cacheBufferUnbufferProvider() {
 
-    $key   = 'abcdefg';
+    $key = 'abcdefg';
     $value = 123456;
 
-    $map1  = [
-        'abc' => 123,
-        'def' => 456,
-        'ghi' => 789
+    $map1 = [
+      'abc' => 123,
+      'def' => 456,
+      'ghi' => 789
     ];
 
     return [
-        'Unbuffered Key' => [ $map1, $key, $value ]
+      'Unbuffered Key' => [$map1, $key, $value]
     ];
 
-  } // cacheBufferUnbufferProvider
+  }
 
 
   /**
@@ -536,19 +549,19 @@ class AdapterAbstractTest extends BaseTest {
    * @dataProvider unsupportedBufferOpProvider
    * @expectedException Behance\NBD\Cache\Exceptions\OperationNotSupportedException
    */
-  public function unsupportedBufferedOps( $operation ) {
+  public function unsupportedBufferedOps($operation) {
 
-    $mock  = $this->_getAbstractMock( AdapterAbstract::class, [ '_performExecute' ] );
+    $mock = $this->_getAbstractMock(AdapterAbstract::class, ['_performExecute']);
 
     // TODO: figure out how to match keys in-order of being set during commit
-    $mock->expects( $this->never() )
-      ->method( '_performExecute' );
+    $mock->expects($this->never())
+      ->method('_performExecute');
 
     $mock->beginBuffer();
 
-    $mock->{$operation}( 'abcdef', 123 );
+    $mock->{$operation}('abcdef', 123);
 
-  } // unsupportedBufferedOps
+  }
 
 
   /**
@@ -557,13 +570,13 @@ class AdapterAbstractTest extends BaseTest {
   public function unsupportedBufferOpProvider() {
 
     return [
-        [ 'add' ],
-        [ 'replace' ],
-        [ 'increment' ],
-        [ 'decrement' ],
-        [ 'flush' ],
+      ['add'],
+      ['replace'],
+      ['increment'],
+      ['decrement'],
+      ['flush'],
     ];
 
-  } // unsupportedBufferOpProvider
+  }
 
-} // AdapterAbstractTest
+}

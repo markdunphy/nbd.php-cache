@@ -1,5 +1,23 @@
 <?php
 
+/*************************************************************************
+ * ADOBE CONFIDENTIAL
+ * ___________________
+ *
+ * Copyright 2018 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
+ *************************************************************************/
+
+
 namespace Behance\NBD\Cache;
 
 use Behance\NBD\Cache\ConfigService;
@@ -8,19 +26,19 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 class Factory {
 
   const NAMESPACE_ADAPTERS = '\\Behance\\NBD\\Cache\\Adapters\\';
-  const ADAPTER_SUFFIX     = 'Adapter';
+  const ADAPTER_SUFFIX = 'Adapter';
 
-  const TYPE_MEMCACHE      = 'Memcache';
-  const TYPE_MEMCACHED     = 'Memcached';
-  const TYPE_REDIS         = 'Redis';
+  const TYPE_MEMCACHE = 'Memcache';
+  const TYPE_MEMCACHED = 'Memcached';
+  const TYPE_REDIS = 'Redis';
 
   /**
    * @var string[] list of valid adapter types, in preferred priority order
    */
   protected static $_ADAPTER_TYPES = [
-      self::TYPE_MEMCACHED,
-      self::TYPE_MEMCACHE,
-      self::TYPE_REDIS
+    self::TYPE_MEMCACHED,
+    self::TYPE_MEMCACHE,
+    self::TYPE_REDIS
   ];
 
 
@@ -38,23 +56,23 @@ class Factory {
    *
    * @return Behance\NBD\Cache\Interfaces\AdapterInterface
    */
-  public static function create( array $config, $type = null, ConfigService $config_service = null, EventDispatcherInterface $event_dispatcher = null ) {
+  public static function create(array $config, $type = null, ConfigService $config_service = null, EventDispatcherInterface $event_dispatcher = null) {
 
     $config_service = $config_service ?: new ConfigService();
 
-    foreach ( $config as $server ) {
-      $config_service->addServer( $server );
+    foreach ($config as $server) {
+      $config_service->addServer($server);
     }
 
     $servers = $config_service->getServers();
-    $class   = self::NAMESPACE_ADAPTERS . ( new static( $type ) )->getType() . self::ADAPTER_SUFFIX;
-    $adapter = new $class( $event_dispatcher );
+    $class = self::NAMESPACE_ADAPTERS . (new static($type))->getType() . self::ADAPTER_SUFFIX;
+    $adapter = new $class($event_dispatcher);
 
-    $adapter->addServers( $servers );
+    $adapter->addServers($servers);
 
     return $adapter;
 
-  } // create
+  }
 
 
   /**
@@ -64,39 +82,39 @@ class Factory {
    *
    * @param string|null $type
    */
-  public function __construct( $type = null ) {
+  public function __construct($type = null) {
 
     // When type is specified manually, determine its validity + availability
-    if ( !empty( $type ) ) {
+    if (!empty($type)) {
 
-      if ( !in_array( $type, self::$_ADAPTER_TYPES ) ) {
-        throw new CacheException( "Invalid cache adapter: " . var_export( $type, 1 ) );
+      if (!in_array($type, self::$_ADAPTER_TYPES)) {
+        throw new CacheException("Invalid cache adapter: " . var_export($type, 1));
       }
 
-      if ( !$this->_isExtensionLoaded( $this->_getExtensionName( $type ) ) ) {
-        throw new Exceptions\SystemRequirementException( "Selected cache adapter not available: " . var_export( $type, 1 ) );
+      if (!$this->_isExtensionLoaded($this->_getExtensionName($type))) {
+        throw new Exceptions\SystemRequirementException("Selected cache adapter not available: " . var_export($type, 1));
       }
 
       $this->_type = $type;
       return;
 
-    } // if type
+    }
 
     // Otherwise, automatically select a type from the prioritized list
-    foreach ( self::$_ADAPTER_TYPES as $adapter_type ) {
+    foreach (self::$_ADAPTER_TYPES as $adapter_type) {
 
-      if ( $this->_isExtensionLoaded( $this->_getExtensionName( $adapter_type ) ) ) {
+      if ($this->_isExtensionLoaded($this->_getExtensionName($adapter_type))) {
         $this->_type = $adapter_type;
         break;
       }
 
-    } // foreach adapter_type
-
-    if ( empty( $this->_type ) ) {
-      throw new Exceptions\SystemRequirementException( "No cache extensions installed or available" );
     }
 
-  } // __construct
+    if (empty($this->_type)) {
+      throw new Exceptions\SystemRequirementException("No cache extensions installed or available");
+    }
+
+  }
 
 
   /**
@@ -106,7 +124,7 @@ class Factory {
 
     return $this->_type;
 
-  } // getType
+  }
 
 
   /**
@@ -114,11 +132,11 @@ class Factory {
    *
    * @return bool
    */
-  protected function _isExtensionLoaded( $type ) {
+  protected function _isExtensionLoaded($type) {
 
-    return extension_loaded( $type );
+    return extension_loaded($type);
 
-  } // _isExtensionLoaded
+  }
 
 
   /**
@@ -126,10 +144,10 @@ class Factory {
    *
    * @return string
    */
-  private function _getExtensionName( $type ) {
+  private function _getExtensionName($type) {
 
-    return strtolower( $type );
+    return mb_strtolower($type);
 
-  } // _getExtensionName
+  }
 
-} // Factory
+}

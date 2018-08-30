@@ -1,5 +1,23 @@
 <?php
 
+/*************************************************************************
+ * ADOBE CONFIDENTIAL
+ * ___________________
+ *
+ * Copyright 2018 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
+ *************************************************************************/
+
+
 namespace Behance\NBD\Cache\Adapters;
 
 use Behance\NBD\Cache\AdapterInterface;
@@ -13,11 +31,11 @@ class RedisAdapterTest extends BaseTest {
 
   protected function setUp() {
 
-    if ( !extension_loaded( 'redis' ) ) {
-      $this->markTestSkipped( 'Redis extension is not available' );
+    if (!extension_loaded('redis')) {
+      $this->markTestSkipped('Redis extension is not available');
     }
 
-  } // setUp
+  }
 
 
   /**
@@ -26,33 +44,31 @@ class RedisAdapterTest extends BaseTest {
    * @test
    * @dataProvider passthruProvider
    */
-  public function passthru( $method, $translated, $args, $with, $expected ) {
+  public function passthru($method, $translated, $args, $with, $expected) {
 
-    $redis = $this->createMock( $this->_cache );
+    $redis = $this->createMock($this->_cache);
 
-    if ( $with === null ) {
+    if ($with === null) {
 
-      $redis->expects( $this->once() )
-        ->method( $translated )
-        ->willReturn( $expected );
+      $redis->expects($this->once())
+        ->method($translated)
+        ->willReturn($expected);
 
-    } // if !with
+    } else {
 
-    else {
+      $redis->expects($this->once())
+        ->method($translated)
+        ->willReturn($expected)
+        ->with($with);
 
-      $redis->expects( $this->once() )
-        ->method( $translated )
-        ->willReturn( $expected )
-        ->with( $with );
+    }
 
-    } // else (with)
+    $adapter = new RedisAdapter(null, $redis);
+    $results = call_user_func_array([$adapter, $method], $args);
 
-    $adapter = new RedisAdapter( null, $redis );
-    $results = call_user_func_array( [ $adapter, $method ], $args );
+    $this->assertEquals($expected, $results);
 
-    $this->assertEquals( $expected, $results );
-
-  } // passthru
+  }
 
 
   /**
@@ -60,49 +76,48 @@ class RedisAdapterTest extends BaseTest {
    */
   public function passthruProvider() {
 
-    $key    = 'abcdefg';
-    $value  = 12345;
-    $keys   = [ 'abc', 'def', 'ghi' ];
+    $key = 'abcdefg';
+    $value = 12345;
+    $keys = ['abc', 'def', 'ghi'];
     // $values = [ 123, 456, 789 ];
 
     return [
-        [ 'get',         'get',         [ $key ],            $key,  $value ],
-        [ 'increment',   'incrBy',      [ $key, $value, 1 ], null, true ],
-        [ 'decrement',   'decrBy',      [ $key, $value, 1 ], null, true ],
-        [ 'delete',      'delete',      [ $key ],            $key,  true ],
-        [ 'deleteMulti', 'delete',      [ $keys ],           $keys, true ],
-        [ 'flush',       'flushDb',     [],                  null, true ],
-        [ 'close',       'close',       [],                  null, true ]
+      ['get', 'get', [$key], $key, $value],
+      ['increment', 'incrBy', [$key, $value, 1], null, true],
+      ['decrement', 'decrBy', [$key, $value, 1], null, true],
+      ['delete', 'delete', [$key], $key, true],
+      ['deleteMulti', 'delete', [$keys], $keys, true],
+      ['flush', 'flushDb', [], null, true],
+      ['close', 'close', [], null, true]
     ];
 
-  } // passthruProvider
+  }
 
 
   /**
    * @test
    * @dataProvider binaryProvider
    */
-  public function set( $default_ttl ) {
+  public function set($default_ttl) {
 
-    $redis = $this->createMock( $this->_cache );
-    $key   = 'abc';
+    $redis = $this->createMock($this->_cache);
+    $key = 'abc';
     $value = 123;
-    $ttl   = $this->_getTtl( $default_ttl );
+    $ttl = $this->_getTtl($default_ttl);
 
-    $redis->expects( $this->once() )
-      ->method( 'setEx' )
-      ->with( $key, $ttl, $value );
+    $redis->expects($this->once())
+      ->method('setEx')
+      ->with($key, $ttl, $value);
 
-    $adapter = new RedisAdapter( null, $redis );
+    $adapter = new RedisAdapter(null, $redis);
 
-    if ( $default_ttl ) {
-      $adapter->set( $key, $value );
+    if ($default_ttl) {
+      $adapter->set($key, $value);
+    } else {
+      $adapter->set($key, $value, $ttl);
     }
-    else {
-      $adapter->set( $key, $value, $ttl );
-    }
 
-  } // set
+  }
 
 
   /**
@@ -114,74 +129,72 @@ class RedisAdapterTest extends BaseTest {
    */
   public function setPseudoPermanent() {
 
-    $redis = $this->createMock( $this->_cache );
-    $key   = 'abc';
+    $redis = $this->createMock($this->_cache);
+    $key = 'abc';
     $value = 123;
-    $ttl   = RedisAdapter::PSEUDO_MAX;
+    $ttl = RedisAdapter::PSEUDO_MAX;
 
-    $redis->expects( $this->once() )
-      ->method( 'setEx' )
-      ->with( $key, $ttl, $value );
+    $redis->expects($this->once())
+      ->method('setEx')
+      ->with($key, $ttl, $value);
 
-    $adapter = new RedisAdapter( null, $redis );
+    $adapter = new RedisAdapter(null, $redis);
 
-    $adapter->set( $key, $value, 0 );
+    $adapter->set($key, $value, 0);
 
-  } // setPseudoPermanent
+  }
 
 
   /**
    * @test
    * @dataProvider binaryProvider
    */
-  public function add( $default_ttl ) {
+  public function add($default_ttl) {
 
-    $redis = $this->createMock( $this->_cache );
-    $key   = 'abc';
+    $redis = $this->createMock($this->_cache);
+    $key = 'abc';
     $value = 123;
-    $ttl   = $this->_getTtl( $default_ttl );
+    $ttl = $this->_getTtl($default_ttl);
 
-    $redis->expects( $this->once() )
-      ->method( 'set' )
-      ->with( $key, $value, [ 'nx', 'ex' => $ttl ] );
+    $redis->expects($this->once())
+      ->method('set')
+      ->with($key, $value, ['nx', 'ex' => $ttl]);
 
-    $adapter = new RedisAdapter( null, $redis );
+    $adapter = new RedisAdapter(null, $redis);
 
-    if ( $default_ttl ) {
-      $adapter->add( $key, $value );
+    if ($default_ttl) {
+      $adapter->add($key, $value);
+    } else {
+      $adapter->add($key, $value, $ttl);
     }
-    else {
-      $adapter->add( $key, $value, $ttl );
-    }
 
-  } // add
+  }
 
 
   /**
    * @test
    * @dataProvider binaryProvider
    */
-  public function replace( $default_ttl ) {
+  public function replace($default_ttl) {
 
-    $redis = $this->createMock( $this->_cache );
-    $key   = 'abc';
+    $redis = $this->createMock($this->_cache);
+    $key = 'abc';
     $value = 123;
-    $ttl   = $this->_getTtl( $default_ttl );
+    $ttl = $this->_getTtl($default_ttl);
 
-    $redis->expects( $this->once() )
-      ->method( 'set' )
-      ->with( $key, $value, [ 'xx', 'ex' => $ttl ] );
+    $redis->expects($this->once())
+      ->method('set')
+      ->with($key, $value, ['xx', 'ex' => $ttl]);
 
-    $adapter = new RedisAdapter( null, $redis );
+    $adapter = new RedisAdapter(null, $redis);
 
-    if ( $default_ttl ) {
-      $adapter->replace( $key, $value );
+    if ($default_ttl) {
+      $adapter->replace($key, $value);
+    } else {
+      $adapter->replace($key, $value, $ttl);
     }
-    else {
-      $adapter->replace( $key, $value, $ttl );
-    }
 
-  } // replace
+  }
 
   /**
    * @return array
@@ -189,33 +202,33 @@ class RedisAdapterTest extends BaseTest {
   public function binaryProvider() {
 
     return [
-        'true'  => [ true ],
-        'false' => [ false ],
+      'true' => [true],
+      'false' => [false],
     ];
 
-  } // binaryProvider
+  }
 
   /**
    * @test
    */
   public function addServer() {
 
-    $memcache = $this->getMockBuilder( $this->_cache )
-      ->setMethods( [ 'pconnect' ] )
+    $memcache = $this->getMockBuilder($this->_cache)
+      ->setMethods(['pconnect'])
       ->getMock();
 
-    $host     = 'cache1.com';
-    $port     = 11211;
+    $host = 'cache1.com';
+    $port = 11211;
 
-    $memcache->expects( $this->once() )
-      ->method( 'pconnect' )
-      ->with( $host, $port );
+    $memcache->expects($this->once())
+      ->method('pconnect')
+      ->with($host, $port);
 
-    $adapter = new RedisAdapter( null, $memcache );
+    $adapter = new RedisAdapter(null, $memcache);
 
-    $adapter->addServer( $host, $port );
+    $adapter->addServer($host, $port);
 
-  } // addServer
+  }
 
 
   /**
@@ -223,29 +236,29 @@ class RedisAdapterTest extends BaseTest {
    */
   public function addServers() {
 
-    $redis = $this->getMockBuilder( $this->_cache )
-      ->setMethods( [ 'pconnect', 'setOption' ] )
+    $redis = $this->getMockBuilder($this->_cache)
+      ->setMethods(['pconnect', 'setOption'])
       ->getMock();
 
-    $host1    = 'cache1.com';
-    $host2    = 'cache2.com';
-    $port     = 11211;
+    $host1 = 'cache1.com';
+    $host2 = 'cache2.com';
+    $port = 11211;
 
-    $servers  = [
-        [ 'host' => $host1, 'port' => $port ],
-        [ 'host' => $host2, 'port' => $port ],
+    $servers = [
+      ['host' => $host1, 'port' => $port],
+      ['host' => $host2, 'port' => $port],
     ];
 
-    $redis->expects( $this->exactly( count( $servers ) ) )
-      ->method( 'pconnect' )
-      ->withConsecutive( [ $host1, $port ], [ $host2, $port ] );
+    $redis->expects($this->exactly(count($servers)))
+      ->method('pconnect')
+      ->withConsecutive([$host1, $port], [$host2, $port]);
 
 
-    $adapter = new RedisAdapter( null, $redis );
+    $adapter = new RedisAdapter(null, $redis);
 
-    $adapter->addServers( $servers );
+    $adapter->addServers($servers);
 
-  } // addServers
+  }
 
 
   /**
@@ -253,20 +266,20 @@ class RedisAdapterTest extends BaseTest {
    */
   public function getMulti() {
 
-    $redis  = $this->createMock( $this->_cache );
-    $keys   = [ 'abc', 'def', 'ghi' ];
-    $values = [ 123, 456, 789 ];
+    $redis = $this->createMock($this->_cache);
+    $keys = ['abc', 'def', 'ghi'];
+    $values = [123, 456, 789];
 
-    $redis->expects( $this->once() )
-      ->method( 'getMultiple' )
-      ->with( $keys )
-      ->willReturn( $values );
+    $redis->expects($this->once())
+      ->method('getMultiple')
+      ->with($keys)
+      ->willReturn($values);
 
-    $adapter = new RedisAdapter( null, $redis );
+    $adapter = new RedisAdapter(null, $redis);
 
-    $this->assertEquals( array_combine( $keys, $values ), $adapter->getMulti( $keys ) );
+    $this->assertEquals(array_combine($keys, $values), $adapter->getMulti($keys));
 
-  } // getMulti
+  }
 
 
   /**
@@ -274,23 +287,23 @@ class RedisAdapterTest extends BaseTest {
    */
   public function getAllKeys() {
 
-    $redis  = $this->createMock( $this->_cache );
-    $keys_a = [ 'abc', 'def', 'ghi' ];
-    $keys_b = [ 'jkl', 'mno', 'pqr' ];
+    $redis = $this->createMock($this->_cache);
+    $keys_a = ['abc', 'def', 'ghi'];
+    $keys_b = ['jkl', 'mno', 'pqr'];
 
-    $redis->expects( $this->once() )
-      ->method( 'setOption' )
-      ->with( \Redis::OPT_SCAN, \Redis::SCAN_RETRY );
+    $redis->expects($this->once())
+      ->method('setOption')
+      ->with(\Redis::OPT_SCAN, \Redis::SCAN_RETRY);
 
-    $redis->expects( $this->exactly( 3 ) )
-      ->method( 'scan' )
-      ->will( $this->onConsecutiveCalls( $keys_a, $keys_b, null ) );
+    $redis->expects($this->exactly(3))
+      ->method('scan')
+      ->will($this->onConsecutiveCalls($keys_a, $keys_b, null));
 
-    $adapter = new RedisAdapter( null, $redis );
+    $adapter = new RedisAdapter(null, $redis);
 
-    $this->assertEquals( $keys_a + $keys_b, $adapter->getAllKeys() );
+    $this->assertEquals($keys_a + $keys_b, $adapter->getAllKeys());
 
-  } // getAllKeys
+  }
 
 
   /**
@@ -298,17 +311,17 @@ class RedisAdapterTest extends BaseTest {
    */
   public function getStats() {
 
-    $redis  = $this->createMock( $this->_cache );
+    $redis = $this->createMock($this->_cache);
 
-    $redis->expects( $this->once() )
-      ->method( 'info' )
-      ->willReturn( [] );
+    $redis->expects($this->once())
+      ->method('info')
+      ->willReturn([]);
 
-    $adapter = new RedisAdapter( null, $redis );
+    $adapter = new RedisAdapter(null, $redis);
 
-    $this->assertInternalType( 'array', $adapter->getStats() );
+    $this->assertInternalType('array', $adapter->getStats());
 
-  } // getStats
+  }
 
 
   /**
@@ -317,35 +330,35 @@ class RedisAdapterTest extends BaseTest {
   public function executeFail() {
 
     $result = false;
-    $redis  = $this->createMock( $this->_cache );
+    $redis = $this->createMock($this->_cache);
 
-    $redis->expects( $this->once() )
-      ->method( 'get' )
-      ->will( $this->throwException( new \RedisException( "Deliberate!" ) ) );
+    $redis->expects($this->once())
+      ->method('get')
+      ->will($this->throwException(new \RedisException("Deliberate!")));
 
     $dispatcher = new EventDispatcher();
-    $adapter    = new RedisAdapter( $dispatcher, $redis );
-    $hit        = false;
+    $adapter = new RedisAdapter($dispatcher, $redis);
+    $hit = false;
 
-    $dispatcher->addListener( AdapterInterface::EVENT_QUERY_FAIL, function() use ( &$hit ) {
+    $dispatcher->addListener(AdapterInterface::EVENT_QUERY_FAIL, function () use (&$hit) {
       $hit = true;
-    } );
+    });
 
-    $this->assertEquals( $result, $adapter->get( 'abc' ) );
-    $this->assertTrue( $hit );
+    $this->assertEquals($result, $adapter->get('abc'));
+    $this->assertTrue($hit);
 
-  } // executeFail
+  }
 
 
   /**
    * @return int
    */
-  private function _getTtl( $default_ttl ) {
+  private function _getTtl($default_ttl) {
 
-    return ( $default_ttl )
+    return ($default_ttl)
            ? RedisAdapter::EXPIRATION_DEFAULT
            : 123456;
 
-  } // _getTtl
+  }
 
-} // RedisAdapterTest
+}

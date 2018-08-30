@@ -18,11 +18,18 @@
     ],
     "require": {
         "symfony/event-dispatcher": "~2.6 || ~3.0",
-        "php": ">=7.1"
+        "php": ">=7.1",
+        "behance/php-sniffs": "^3.0"
     },
     "require-dev": {
         "phpunit/phpunit": "~6.0"
     },
+    "repositories": [
+        {
+            "type": "github",
+            "url": "git@git.corp.adobe.com:behance/php-sniffs.git"
+        }
+    ],
     "autoload": {
         "psr-4": {
             "Behance\\NBD\\Cache\\": "src/"

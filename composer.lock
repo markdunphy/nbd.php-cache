@@ -4,8 +4,138 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "683dfe9dec269f5ac5ddc3b5452290fe",
+    "content-hash": "57c04838c6fb1c4009897824c85fb0ae",
     "packages": [
+        {
+            "name": "behance/php-sniffs",
+            "version": "3.0.6",
+            "source": {
+                "type": "git",
+                "url": "https://git.corp.adobe.com/behance/php-sniffs.git",
+                "reference": "d334da3a098c3b4c6112d2ca6d69f6c23c99a2db"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://git.corp.adobe.com/api/v3/repos/behance/php-sniffs/zipball/d334da3a098c3b4c6112d2ca6d69f6c23c99a2db",
+                "reference": "d334da3a098c3b4c6112d2ca6d69f6c23c99a2db",
+                "shasum": ""
+            },
+            "require": {
+                "squizlabs/php_codesniffer": "^2.5.0"
+            },
+            "require-dev": {
+                "jakub-onderka/php-parallel-lint": "~0.7",
+                "phpunit/phpunit": "~3.7",
+                "sebastian/phpcpd": "^2.0.0"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "tests"
+                ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Kevin Ran",
+                    "email": "kran@adobe.com"
+                },
+                {
+                    "name": "Mike Sherov",
+                    "email": "sherov@adobe.com"
+                },
+                {
+                    "name": "Jim DeLois",
+                    "email": "delois@adobe.com"
+                }
+            ],
+            "description": "Behance PHPCS rules",
+            "support": {
+                "source": "https://git.corp.adobe.com/behance/php-sniffs/tree/3.0.6",
+                "issues": "https://git.corp.adobe.com/behance/php-sniffs/issues"
+            },
+            "time": "2018-07-17T14:58:05+00:00"
+        },
+        {
+            "name": "squizlabs/php_codesniffer",
+            "version": "2.9.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/squizlabs/PHP_CodeSniffer.git",
+                "reference": "dcbed1074f8244661eecddfc2a675430d8d33f62"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/squizlabs/PHP_CodeSniffer/zipball/dcbed1074f8244661eecddfc2a675430d8d33f62",
+                "reference": "dcbed1074f8244661eecddfc2a675430d8d33f62",
+                "shasum": ""
+            },
+            "require": {
+                "ext-simplexml": "*",
+                "ext-tokenizer": "*",
+                "ext-xmlwriter": "*",
+                "php": ">=5.1.2"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "~4.0"
+            },
+            "bin": [
+                "scripts/phpcs",
+                "scripts/phpcbf"
+            ],
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.x-dev"
+                }
+            },
+            "autoload": {
+                "classmap": [
+                    "CodeSniffer.php",
+                    "CodeSniffer/CLI.php",
+                    "CodeSniffer/Exception.php",
+                    "CodeSniffer/File.php",
+                    "CodeSniffer/Fixer.php",
+                    "CodeSniffer/Report.php",
+                    "CodeSniffer/Reporting.php",
+                    "CodeSniffer/Sniff.php",
+                    "CodeSniffer/Tokens.php",
+                    "CodeSniffer/Reports/",
+                    "CodeSniffer/Tokenizers/",
+                    "CodeSniffer/DocGenerators/",
+                    "CodeSniffer/Standards/AbstractPatternSniff.php",
+                    "CodeSniffer/Standards/AbstractScopeSniff.php",
+                    "CodeSniffer/Standards/AbstractVariableSniff.php",
+                    "CodeSniffer/Standards/IncorrectPatternException.php",
+                    "CodeSniffer/Standards/Generic/Sniffs/",
+                    "CodeSniffer/Standards/MySource/Sniffs/",
+                    "CodeSniffer/Standards/PEAR/Sniffs/",
+                    "CodeSniffer/Standards/PSR1/Sniffs/",
+                    "CodeSniffer/Standards/PSR2/Sniffs/",
+                    "CodeSniffer/Standards/Squiz/Sniffs/",
+                    "CodeSniffer/Standards/Zend/Sniffs/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Greg Sherwood",
+                    "role": "lead"
+                }
+            ],
+            "description": "PHP_CodeSniffer tokenizes PHP, JavaScript and CSS files and detects violations of a defined set of coding standards.",
+            "homepage": "http://www.squizlabs.com/php-codesniffer",
+            "keywords": [
+                "phpcs",
+                "standards"
+            ],
+            "time": "2017-05-22T02:43:20+00:00"
+        },
         {
             "name": "symfony/event-dispatcher",
             "version": "v3.4.12",
