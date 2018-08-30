@@ -2,7 +2,8 @@
 
 namespace Behance\NBD\Cache\Test;
 
-abstract class BaseTest extends \PHPUnit\Framework\TestCase {
+abstract class BaseTest extends \PHPUnit\Framework\TestCase
+{
 
   /**
    * @param string $class
@@ -10,14 +11,14 @@ abstract class BaseTest extends \PHPUnit\Framework\TestCase {
    *
    * @return mixed  instace mock of $class
    */
-  protected function _getDisabledMock( $class, array $functions = null ) {
+    protected function _getDisabledMock($class, array $functions = null)
+    {
 
-    return $this->getMockBuilder( $class )
-      ->setMethods( $functions )
-      ->disableOriginalConstructor()
-      ->getMock();
-
-  } // _getDisabledMock
+        return $this->getMockBuilder($class)
+        ->setMethods($functions)
+        ->disableOriginalConstructor()
+        ->getMock();
+    } // _getDisabledMock
 
 
   /**
@@ -27,10 +28,9 @@ abstract class BaseTest extends \PHPUnit\Framework\TestCase {
    *
    * @return mixed  instace mock of $class
    */
-  protected function _getAbstractMock( $class, array $functions = [], array $arguments = [] ) {
+    protected function _getAbstractMock($class, array $functions = [], array $arguments = [])
+    {
 
-    return $this->getMockForAbstractClass( $class, $arguments, '', true, true, true, $functions );
-
-  } // _getAbstractMock
-
+        return $this->getMockForAbstractClass($class, $arguments, '', true, true, true, $functions);
+    } // _getAbstractMock
 } // BaseTest

@@ -4,29 +4,30 @@ namespace Behance\NBD\Cache\Events;
 
 use Symfony\Component\EventDispatcher\Event;
 
-class QueryFailEvent extends Event {
+class QueryFailEvent extends Event
+{
 
   /**
    * @var string
    */
-  private $_hostname;
+    private $_hostname;
 
   /**
    * @var int
    */
-  private $_port;
+    private $_port;
 
 
   /**
    * @var string
    */
-  private $_reason;
+    private $_reason;
 
 
   /**
    * @var int
    */
-  private $_code;
+    private $_code;
 
 
   /**
@@ -35,53 +36,52 @@ class QueryFailEvent extends Event {
    * @param int    $port
    * @param int    $code
    */
-  public function __construct( $reason, $hostname = null, $port = null, $code = null ) {
+    public function __construct($reason, $hostname = null, $port = null, $code = null)
+    {
 
-    $this->_reason   = $reason;
-    $this->_hostname = $hostname;
-    $this->_port     = $port;
-    $this->_code     = $code;
-
-  } // __construct
-
-
-  /**
-   * @return string
-   */
-  public function getReason() {
-
-    return $this->_reason;
-
-  } // getReason
+        $this->_reason   = $reason;
+        $this->_hostname = $hostname;
+        $this->_port     = $port;
+        $this->_code     = $code;
+    } // __construct
 
 
   /**
    * @return string
    */
-  public function getHostname() {
+    public function getReason()
+    {
 
-    return $this->_hostname;
+        return $this->_reason;
+    } // getReason
 
-  } // getHostname
+
+  /**
+   * @return string
+   */
+    public function getHostname()
+    {
+
+        return $this->_hostname;
+    } // getHostname
 
 
   /**
    * @return int
    */
-  public function getPort() {
+    public function getPort()
+    {
 
-    return $this->_port;
-
-  } // getPort
+        return $this->_port;
+    } // getPort
 
 
   /**
    * @return int
    */
-  public function getCode() {
+    public function getCode()
+    {
 
-    return $this->_code;
-
-  } // getCode
-
+        return $this->_code;
+    } // getCode
 } // QueryFailEvent

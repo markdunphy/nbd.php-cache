@@ -11,132 +11,133 @@ use Behance\NBD\Cache\Exceptions\OperationNotSupportedException;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
-abstract class AdapterAbstract implements AdapterInterface {
+abstract class AdapterAbstract implements AdapterInterface
+{
 
   /**
    * @var Symfony\Component\EventDispatcher\EventDispatcherInterface
    */
-  protected $_dispatcher;
+    protected $_dispatcher;
 
   /**
    * @var bool  indicates whether or not connection is in buffering mode
    */
-  protected $_is_buffering = false;
+    protected $_is_buffering = false;
 
   /**
    * TODO: convert to class constant once PHP support <5.6 is dropped
    * @var string[]  defines a small set of caching operations that can function in a buffered state
    */
-  protected $_SUPPORTED_BUFFERED_OPS = [
+    protected $_SUPPORTED_BUFFERED_OPS = [
       'set',
       'get',
       'getMulti',
       'delete',
       'deleteMulti'
-  ];
+    ];
 
   /**
    * @var array  queued operations to take place when committing buffer
    */
-  protected $_buffered_ops;
+    protected $_buffered_ops;
 
   /**
    * @var array  acts as key-value storage during buffer operations
    */
-  protected $_buffer;
+    protected $_buffer;
 
 
   /**
    * @param Symfony\Component\EventDispatcher\EventDispatcherInterface
    */
-  public function __construct( EventDispatcherInterface $event_dispatcher = null ) {
+    public function __construct(EventDispatcherInterface $event_dispatcher = null)
+    {
 
-    $this->_dispatcher = $event_dispatcher;
-
-  } // __construct
-
-
-  /**
-   * {@inheritDoc}
-   */
-  abstract public function addServer( $host, $port );
+        $this->_dispatcher = $event_dispatcher;
+    } // __construct
 
 
   /**
    * {@inheritDoc}
    */
-  abstract public function addServers( array $servers );
+    abstract public function addServer($host, $port);
 
 
   /**
    * {@inheritDoc}
    */
-  public function get( $key ) {
-
-    $action = ( function() use ( $key ) {
-      return $this->_get( $key );
-    } );
-
-    return $this->_execute( $action, __FUNCTION__, $key );
-
-  } // get
+    abstract public function addServers(array $servers);
 
 
   /**
    * {@inheritDoc}
    */
-  public function getMulti( array $keys ) {
+    public function get($key)
+    {
 
-    // NOTE: $keys are passed/used, since count/values may change in buffering mode
-    $action = ( function() use ( $keys ) {
-      return $this->_getMulti( $keys );
-    } );
+        $action = ( function () use ($key) {
+            return $this->_get($key);
+        } );
 
-    return $this->_execute( $action, __FUNCTION__, $keys );
-
-  } // getMulti
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public function set( $key, $value, $ttl = AdapterInterface::EXPIRATION_DEFAULT ) {
-
-    $action = ( function() use ( $key, $value, $ttl ) {
-      return $this->_set( $key, $value, $ttl );
-    } );
-
-    return $this->_execute( $action, __FUNCTION__, $key, true, $value );
-
-  } // set
+        return $this->_execute($action, __FUNCTION__, $key);
+    } // get
 
 
   /**
    * {@inheritDoc}
    */
-  public function add( $key, $value, $ttl = AdapterInterface::EXPIRATION_DEFAULT ) {
+    public function getMulti(array $keys)
+    {
 
-    $action = ( function() use ( $key, $value, $ttl ) {
-      return $this->_add( $key, $value, $ttl );
-    } );
+        // NOTE: $keys are passed/used, since count/values may change in buffering mode
+        $action = ( function () use ($keys) {
+            return $this->_getMulti($keys);
+        } );
 
-    return $this->_execute( $action, __FUNCTION__, $key, true, $value );
-
-  } // add
+        return $this->_execute($action, __FUNCTION__, $keys);
+    } // getMulti
 
 
   /**
    * {@inheritDoc}
    */
-  public function replace( $key, $value, $ttl = AdapterInterface::EXPIRATION_DEFAULT ) {
+    public function set($key, $value, $ttl = AdapterInterface::EXPIRATION_DEFAULT)
+    {
 
-    $action = ( function() use ( $key, $value, $ttl ) {
-      return $this->_replace( $key, $value, $ttl );
-    } );
+        $action = ( function () use ($key, $value, $ttl) {
+            return $this->_set($key, $value, $ttl);
+        } );
 
-    return $this->_execute( $action, __FUNCTION__, $key, true, $value );
+        return $this->_execute($action, __FUNCTION__, $key, true, $value);
+    } // set
 
-  } // replace
+
+  /**
+   * {@inheritDoc}
+   */
+    public function add($key, $value, $ttl = AdapterInterface::EXPIRATION_DEFAULT)
+    {
+
+        $action = ( function () use ($key, $value, $ttl) {
+            return $this->_add($key, $value, $ttl);
+        } );
+
+        return $this->_execute($action, __FUNCTION__, $key, true, $value);
+    } // add
+
+
+  /**
+   * {@inheritDoc}
+   */
+    public function replace($key, $value, $ttl = AdapterInterface::EXPIRATION_DEFAULT)
+    {
+
+        $action = ( function () use ($key, $value, $ttl) {
+            return $this->_replace($key, $value, $ttl);
+        } );
+
+        return $this->_execute($action, __FUNCTION__, $key, true, $value);
+    } // replace
 
 
   /**
@@ -144,195 +145,193 @@ abstract class AdapterAbstract implements AdapterInterface {
    *
    * @see http://www.php.net/manual/en/memcache.increment.php
    */
-  public function increment( $key, $value = 1 ) {
+    public function increment($key, $value = 1)
+    {
 
-    $action = ( function() use ( $key, $value ) {
-      return $this->_increment( $key, $value );
-    } );
+        $action = ( function () use ($key, $value) {
+            return $this->_increment($key, $value);
+        } );
 
-    return $this->_execute( $action, __FUNCTION__, $key, true, $value );
-
-  } // increment
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public function decrement( $key, $value = 1 ) {
-
-    $action = ( function() use ( $key, $value ) {
-      return $this->_decrement( $key, $value );
-    } );
-
-    return $this->_execute( $action, __FUNCTION__, $key, true, $value );
-
-  } // decrement
+        return $this->_execute($action, __FUNCTION__, $key, true, $value);
+    } // increment
 
 
   /**
    * {@inheritDoc}
    */
-  public function delete( $key ) {
+    public function decrement($key, $value = 1)
+    {
 
-    $action = ( function() use ( $key ) {
-      return $this->_delete( $key );
-    } );
+        $action = ( function () use ($key, $value) {
+            return $this->_decrement($key, $value);
+        } );
 
-    return $this->_execute( $action, __FUNCTION__, $key, true );
-
-  } // delete
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public function deleteMulti( array $keys ) {
-
-    $action = ( function() use ( $keys ) {
-      return $this->_deleteMulti( $keys );
-    } );
-
-    return $this->_execute( $action, __FUNCTION__, $keys, true );
-
-  } // deleteMulti
+        return $this->_execute($action, __FUNCTION__, $key, true, $value);
+    } // decrement
 
 
   /**
    * {@inheritDoc}
    */
-  public function beginBuffer() {
+    public function delete($key)
+    {
 
-    if ( $this->isBuffering() ) {
-      throw new DuplicateActionException( "Buffering already started" );
-    }
+        $action = ( function () use ($key) {
+            return $this->_delete($key);
+        } );
 
-    $this->_is_buffering = true;
-    $this->_buffered_ops = [];
-    $this->_buffer       = [];
-
-  } // beginBuffer
+        return $this->_execute($action, __FUNCTION__, $key, true);
+    } // delete
 
 
   /**
    * {@inheritDoc}
    */
-  public function commitBuffer() {
+    public function deleteMulti(array $keys)
+    {
 
-    foreach ( $this->_buffered_ops as $args ) {
+        $action = ( function () use ($keys) {
+            return $this->_deleteMulti($keys);
+        } );
 
-      // Unmarshal arguments to prepare for direct execution
-      list( $action, $operation, $key_or_keys, $mutable ) = $args;
-
-      $this->_performExecute( $action, $operation, $key_or_keys, $mutable );
-
-    } // foreach buffered_operations
-
-    // IMPORTANT: buffer is now committed, no longer in buffered mode
-    $this->_is_buffering = false;
-    $this->_bufferFlush();
-
-  } // commitBuffer
+        return $this->_execute($action, __FUNCTION__, $keys, true);
+    } // deleteMulti
 
 
   /**
    * {@inheritDoc}
    */
-  public function rollbackBuffer() {
+    public function beginBuffer()
+    {
 
-    // IMPORTANT: buffer is reverted, cache is untouched, no longer in buffered mode
-    $this->_is_buffering = false;
-    $this->_bufferFlush();
+        if ($this->isBuffering()) {
+            throw new DuplicateActionException("Buffering already started");
+        }
 
-  } // rollbackBuffer
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public function isBuffering() {
-
-    return $this->_is_buffering;
-
-  } // isBuffering
+        $this->_is_buffering = true;
+        $this->_buffered_ops = [];
+        $this->_buffer       = [];
+    } // beginBuffer
 
 
   /**
    * {@inheritDoc}
    */
-  public function flush() {
+    public function commitBuffer()
+    {
 
-    $action = ( function() {
-      return $this->_flush();
-    } );
+        foreach ($this->_buffered_ops as $args) {
+            // Unmarshal arguments to prepare for direct execution
+            list( $action, $operation, $key_or_keys, $mutable ) = $args;
 
-    return $this->_execute( $action, __FUNCTION__, null, true );
+            $this->_performExecute($action, $operation, $key_or_keys, $mutable);
+        } // foreach buffered_operations
 
-  } // flush
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public function getAllKeys() {
-
-    $action = ( function() {
-      return $this->_getAllKeys();
-    } );
-
-    return $this->_execute( $action, __FUNCTION__, '' );
-
-  } // getAllKeys
+        // IMPORTANT: buffer is now committed, no longer in buffered mode
+        $this->_is_buffering = false;
+        $this->_bufferFlush();
+    } // commitBuffer
 
 
   /**
    * {@inheritDoc}
    */
-  public function getStats( $type = 'items' ) {
+    public function rollbackBuffer()
+    {
 
-    $action = ( function() use ( $type ) {
-      return $this->_getStats( $type );
-    } );
-
-    return $this->_execute( $action, __FUNCTION__, '' );
-
-  } // getStats
+        // IMPORTANT: buffer is reverted, cache is untouched, no longer in buffered mode
+        $this->_is_buffering = false;
+        $this->_bufferFlush();
+    } // rollbackBuffer
 
 
   /**
    * {@inheritDoc}
    */
-  public function bindEvent( $event_name, callable $handler ) {
+    public function isBuffering()
+    {
 
-    // Build a dispatcher if one doesn't already exist
-    if ( !$this->_dispatcher ) {
-      $this->_dispatcher = $this->_buildEventDispatcher();
-    }
-
-    $this->_dispatcher->addListener( $event_name, $handler );
-
-  } // bindEvent
+        return $this->_is_buffering;
+    } // isBuffering
 
 
   /**
    * {@inheritDoc}
    */
-  public function getBoundEvents() {
+    public function flush()
+    {
 
-    return ( $this->_dispatcher )
+        $action = ( function () {
+            return $this->_flush();
+        } );
+
+        return $this->_execute($action, __FUNCTION__, null, true);
+    } // flush
+
+
+  /**
+   * {@inheritDoc}
+   */
+    public function getAllKeys()
+    {
+
+        $action = ( function () {
+            return $this->_getAllKeys();
+        } );
+
+        return $this->_execute($action, __FUNCTION__, '');
+    } // getAllKeys
+
+
+  /**
+   * {@inheritDoc}
+   */
+    public function getStats($type = 'items')
+    {
+
+        $action = ( function () use ($type) {
+            return $this->_getStats($type);
+        } );
+
+        return $this->_execute($action, __FUNCTION__, '');
+    } // getStats
+
+
+  /**
+   * {@inheritDoc}
+   */
+    public function bindEvent($event_name, callable $handler)
+    {
+
+        // Build a dispatcher if one doesn't already exist
+        if (!$this->_dispatcher) {
+            $this->_dispatcher = $this->_buildEventDispatcher();
+        }
+
+        $this->_dispatcher->addListener($event_name, $handler);
+    } // bindEvent
+
+
+  /**
+   * {@inheritDoc}
+   */
+    public function getBoundEvents()
+    {
+
+        return ( $this->_dispatcher )
         ? $this->_dispatcher->getListeners()
         : [];
-
-  } // getBoundEvents
+    } // getBoundEvents
 
 
   /**
    * {@inheritDoc}
    */
-  public function close() {
+    public function close()
+    {
 
-    return $this->_close();
-
-  } // close
+        return $this->_close();
+    } // close
 
 
   /**
@@ -346,19 +345,19 @@ abstract class AdapterAbstract implements AdapterInterface {
    *
    * @return mixed
    */
-  protected function _execute( \Closure $action, $operation, $key_or_keys, $mutable = false, $value = null ) {
+    protected function _execute(\Closure $action, $operation, $key_or_keys, $mutable = false, $value = null)
+    {
 
-    if ( !$this->isBuffering() ) {
-      return $this->_performExecute( $action, $operation, $key_or_keys, $mutable );
-    }
+        if (!$this->isBuffering()) {
+            return $this->_performExecute($action, $operation, $key_or_keys, $mutable);
+        }
 
-    if ( !in_array( $operation, $this->_SUPPORTED_BUFFERED_OPS ) ) {
-      throw new OperationNotSupportedException( sprintf( '%s not supported during buffering', $operation ) );
-    }
+        if (!in_array($operation, $this->_SUPPORTED_BUFFERED_OPS)) {
+            throw new OperationNotSupportedException(sprintf('%s not supported during buffering', $operation));
+        }
 
-    return $this->_performBufferedExecute( $action, $operation, $key_or_keys, $mutable, $value );
-
-  } // _execute
+        return $this->_performBufferedExecute($action, $operation, $key_or_keys, $mutable, $value);
+    } // _execute
 
 
   /**
@@ -371,17 +370,17 @@ abstract class AdapterAbstract implements AdapterInterface {
    *
    * @return mixed
    */
-  protected function _performExecute( \Closure $action, $operation, $key_or_keys, $mutable ) {
+    protected function _performExecute(\Closure $action, $operation, $key_or_keys, $mutable)
+    {
 
-    $this->_emitQueryEvent( AdapterInterface::EVENT_QUERY_BEFORE, $operation, $key_or_keys, $mutable );
+        $this->_emitQueryEvent(AdapterInterface::EVENT_QUERY_BEFORE, $operation, $key_or_keys, $mutable);
 
-    $result = $action( $key_or_keys );
+        $result = $action($key_or_keys);
 
-    $this->_emitQueryEvent( AdapterInterface::EVENT_QUERY_AFTER, $operation, $key_or_keys, $mutable );
+        $this->_emitQueryEvent(AdapterInterface::EVENT_QUERY_AFTER, $operation, $key_or_keys, $mutable);
 
-    return $result;
-
-  } // _performExecute
+        return $result;
+    } // _performExecute
 
 
   /**
@@ -397,81 +396,73 @@ abstract class AdapterAbstract implements AdapterInterface {
    *
    * @return mixed
    */
-  protected function _performBufferedExecute( \Closure $action, $operation, $key_or_keys, $mutable, $value ) {
+    protected function _performBufferedExecute(\Closure $action, $operation, $key_or_keys, $mutable, $value)
+    {
 
-    switch ( $operation ) {
+        switch ($operation) {
+            case 'get':
+                // Query operation results are important: if one exists in the current buffer, return it
+                // ...otherwise, this op is safe to pass through to execute, do *not* buffer
+                return ( $this->_bufferHasKey($key_or_keys) )
+               ? $this->_bufferGet($key_or_keys)
+               : $this->_performExecute($action, $operation, $key_or_keys, $mutable);
 
-      case 'get':
-        // Query operation results are important: if one exists in the current buffer, return it
-        // ...otherwise, this op is safe to pass through to execute, do *not* buffer
-        return ( $this->_bufferHasKey( $key_or_keys ) )
-               ? $this->_bufferGet( $key_or_keys )
-               : $this->_performExecute( $action, $operation, $key_or_keys, $mutable );
+            case 'getMulti':
+                // Combines results from buffered and actual cache outputs (unbuffered)
+                $buffered    = [];
+                $keys_to_get = [];
 
-      case 'getMulti':
-        // Combines results from buffered and actual cache outputs (unbuffered)
-        $buffered    = [];
-        $keys_to_get = [];
+                foreach ($key_or_keys as $get_key) {
+                    if ($this->_bufferHasKey($get_key)) {
+                        $buffered[ $get_key ] = $this->_bufferGet($get_key);
+                    } else {
+                        $keys_to_get[] = $get_key;
+                    }
+                } // foreach key_or_keys
 
-        foreach ( $key_or_keys as $get_key ) {
+                if (!empty($keys_to_get)) {
+                    $unbuffered = $this->_performExecute($action, $operation, $keys_to_get, $mutable);
+                }
 
-          if ( $this->_bufferHasKey( $get_key ) ) {
-            $buffered[ $get_key ] = $this->_bufferGet( $get_key );
-          }
+                $results = [];
 
-          else {
-            $keys_to_get[] = $get_key;
-          }
-
-        } // foreach key_or_keys
-
-        if ( !empty( $keys_to_get ) ) {
-          $unbuffered = $this->_performExecute( $action, $operation, $keys_to_get, $mutable );
-        }
-
-        $results = [];
-
-        foreach ( $key_or_keys as $get_key ) {
-
-          $results[ $get_key ] = ( isset( $buffered[ $get_key ] ) )
+                foreach ($key_or_keys as $get_key) {
+                    $results[ $get_key ] = ( isset($buffered[ $get_key ]) )
                                  ? $buffered[ $get_key ]
                                  : $unbuffered[ $get_key ];
+                } // foreach key_or_keys
 
-        } // foreach key_or_keys
+                return $results;
 
-        return $results;
+            case 'set':
+                $this->_bufferSet($key_or_keys, $value);
+                break;
 
-      case 'set':
-        $this->_bufferSet( $key_or_keys, $value );
-        break;
+            case 'delete':
+                $this->_bufferDelete($key_or_keys);
+                break;
 
-      case 'delete':
-        $this->_bufferDelete( $key_or_keys );
-        break;
+            case 'deleteMulti':
+                foreach ($key_or_keys as $delete_key) {
+                    $this->_bufferDelete($delete_key);
+                }
+                break;
+        } // switch operation
 
-      case 'deleteMulti':
-        foreach ( $key_or_keys as $delete_key ) {
-          $this->_bufferDelete( $delete_key );
-        }
-        break;
-
-    } // switch operation
-
-    // If fall-through, add operation to buffer queue, which will be replayed in-order on commit
-    $this->_buffered_ops[] = [ $action, $operation, $key_or_keys, $mutable ];
-
-  } // _performBufferedExecute
+        // If fall-through, add operation to buffer queue, which will be replayed in-order on commit
+        $this->_buffered_ops[] = [ $action, $operation, $key_or_keys, $mutable ];
+    } // _performBufferedExecute
 
 
   /**
    * Resets buffer to empty state
    */
-  protected function _bufferFlush() {
+    protected function _bufferFlush()
+    {
 
-    $this->_buffered_ops = null;
-    $this->_buffer       = null;
-
-  } // _bufferFlush
+        $this->_buffered_ops = null;
+        $this->_buffer       = null;
+    } // _bufferFlush
 
 
   /**
@@ -482,17 +473,17 @@ abstract class AdapterAbstract implements AdapterInterface {
    * @param int    $port
    * @param int    $code
    */
-  protected function _handleFailure( $reason, $hostname = null, $port = null, $code = null ) {
+    protected function _handleFailure($reason, $hostname = null, $port = null, $code = null)
+    {
 
-    if ( !$this->_dispatcher ) {
-      return;
-    }
+        if (!$this->_dispatcher) {
+            return;
+        }
 
-    $event = new QueryFailEvent( $reason, $hostname, $port, $code );
+        $event = new QueryFailEvent($reason, $hostname, $port, $code);
 
-    $this->_dispatcher->dispatch( AdapterInterface::EVENT_QUERY_FAIL, $event );
-
-  } // _handleFailure
+        $this->_dispatcher->dispatch(AdapterInterface::EVENT_QUERY_FAIL, $event);
+    } // _handleFailure
 
 
   /**
@@ -501,27 +492,27 @@ abstract class AdapterAbstract implements AdapterInterface {
    * @param string|string[] $key
    * @param bool            $mutable
    */
-  protected function _emitQueryEvent( $event_name, $operation, $key_or_keys, $mutable ) {
+    protected function _emitQueryEvent($event_name, $operation, $key_or_keys, $mutable)
+    {
 
-    if ( !$this->_dispatcher ) {
-      return;
-    }
+        if (!$this->_dispatcher) {
+            return;
+        }
 
-    $event = new QueryEvent( $operation, $key_or_keys, $mutable );
+        $event = new QueryEvent($operation, $key_or_keys, $mutable);
 
-    $this->_dispatcher->dispatch( $event_name, $event );
-
-  } // _emitQueryEvent
+        $this->_dispatcher->dispatch($event_name, $event);
+    } // _emitQueryEvent
 
 
   /**
    * @return Symfony\Component\EventDispatcher\EventDispatcherInterface
    */
-  protected function _buildEventDispatcher() {
+    protected function _buildEventDispatcher()
+    {
 
-    return new EventDispatcher();
-
-  } // _buildEventDispatcher
+        return new EventDispatcher();
+    } // _buildEventDispatcher
 
 
   /**
@@ -532,35 +523,35 @@ abstract class AdapterAbstract implements AdapterInterface {
    *
    * @return mixed|bool  false to indicate key was deleted already
    */
-  protected function _bufferGet( $key ) {
+    protected function _bufferGet($key)
+    {
 
-    // IMPORTANT: if key exists but is null --- this is to indicate a DELETED key
-    return ( $this->_buffer[ $key ] === null )
+        // IMPORTANT: if key exists but is null --- this is to indicate a DELETED key
+        return ( $this->_buffer[ $key ] === null )
            ? false
            : $this->_buffer[ $key ];
-
-  } // _bufferGet
+    } // _bufferGet
 
 
   /**
    * @param string $key
    * @param mixed  $value   set as null to indicate a DELETED key
    */
-  protected function _bufferSet( $key, $value ) {
+    protected function _bufferSet($key, $value)
+    {
 
-    $this->_buffer[ $key ] = $value;
-
-  } // _bufferSet
+        $this->_buffer[ $key ] = $value;
+    } // _bufferSet
 
 
   /**
    * @param string $key
    */
-  protected function _bufferDelete( $key ) {
+    protected function _bufferDelete($key)
+    {
 
-    $this->_buffer[ $key ] = null;
-
-  } // _bufferDelete
+        $this->_buffer[ $key ] = null;
+    } // _bufferDelete
 
 
   /**
@@ -570,11 +561,11 @@ abstract class AdapterAbstract implements AdapterInterface {
    *
    * @return bool
    */
-  protected function _bufferHasKey( $key ) {
+    protected function _bufferHasKey($key)
+    {
 
-    return array_key_exists( $key, $this->_buffer );
-
-  } // _bufferHasKey
+        return array_key_exists($key, $this->_buffer);
+    } // _bufferHasKey
 
 
   /**
@@ -582,7 +573,7 @@ abstract class AdapterAbstract implements AdapterInterface {
    *
    * @return mixed
    */
-  abstract protected function _get( $key );
+    abstract protected function _get($key);
 
 
   /**
@@ -590,7 +581,7 @@ abstract class AdapterAbstract implements AdapterInterface {
    *
    * @return mixed
    */
-  abstract protected function _getMulti( array $keys );
+    abstract protected function _getMulti(array $keys);
 
 
   /**
@@ -600,7 +591,7 @@ abstract class AdapterAbstract implements AdapterInterface {
    *
    * @return bool
    */
-  abstract protected function _set( $key, $value, $ttl );
+    abstract protected function _set($key, $value, $ttl);
 
 
   /**
@@ -610,7 +601,7 @@ abstract class AdapterAbstract implements AdapterInterface {
    *
    * @return bool
    */
-  abstract protected function _add( $key, $value, $ttl );
+    abstract protected function _add($key, $value, $ttl);
 
 
   /**
@@ -620,38 +611,37 @@ abstract class AdapterAbstract implements AdapterInterface {
    *
    * @return bool
    */
-  abstract protected function _replace( $key, $value, $ttl );
+    abstract protected function _replace($key, $value, $ttl);
 
 
   /**
    * @param string $key
    * @param int    $value
    */
-  abstract protected function _increment( $key, $value );
+    abstract protected function _increment($key, $value);
 
 
   /**
    * @param string $key
    * @param int    $value
    */
-  abstract protected function _decrement( $key, $value );
+    abstract protected function _decrement($key, $value);
 
 
   /**
    * @param string $key
    */
-  abstract protected function _delete( $key );
+    abstract protected function _delete($key);
 
 
   /**
    * @param array $keys
    */
-  abstract protected function _deleteMulti( array $keys );
+    abstract protected function _deleteMulti(array $keys);
 
 
   /**
    * Disconnect from server
    */
-  abstract protected function _close();
-
+    abstract protected function _close();
 } // AdapterAbstract
