@@ -6,27 +6,28 @@ use Behance\NBD\Cache\AdapterAbstract;
 use Behance\NBD\Cache\Exceptions\SystemRequirementException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
-class MemcacheAdapter extends AdapterAbstract {
+class MemcacheAdapter extends AdapterAbstract
+{
 
   /**
    * @see http://php.net/manual/en/memcache.addserver.php
    */
-  const DEFAULT_PERSISTENT           = true;
-  const DEFAULT_WEIGHT               = 1;
-  const DEFAULT_TIMEOUT_SECS         = 1;
-  const DEFAULT_SERVER_STATUS        = true;
-  const DEFAULT_RETRY_INTERVAL_SECS  = 15;
-  const DEFAULT_FAILURE_REASON       = 'Node failure';
+    const DEFAULT_PERSISTENT           = true;
+    const DEFAULT_WEIGHT               = 1;
+    const DEFAULT_TIMEOUT_SECS         = 1;
+    const DEFAULT_SERVER_STATUS        = true;
+    const DEFAULT_RETRY_INTERVAL_SECS  = 15;
+    const DEFAULT_FAILURE_REASON       = 'Node failure';
 
-  const STAT_KEY_SLABS               = 'slabs';
-  const STAT_KEY_ITEMS               = 'items';
-  const STAT_KEY_DUMP                = 'cachedump';
+    const STAT_KEY_SLABS               = 'slabs';
+    const STAT_KEY_ITEMS               = 'items';
+    const STAT_KEY_DUMP                = 'cachedump';
 
 
   /**
    * @var \Memcache
    */
-  private $_connection;
+    private $_connection;
 
   /**
    * A broken ->get() interface that noone in the community can appear to resolve
@@ -35,7 +36,7 @@ class MemcacheAdapter extends AdapterAbstract {
    * @var int  number of parameters that get takes, which appears to be php version dependent
    * @link https://github.com/websupport-sk/pecl-memcache/issues/7
    */
-  private $_memcache_get_requires_filler;
+    private $_memcache_get_requires_filler;
 
 
   /**
@@ -44,68 +45,49 @@ class MemcacheAdapter extends AdapterAbstract {
    * @param Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
    * @param Memcache $instance
    */
-  public function __construct( EventDispatcherInterface $event_dispatcher = null, \Memcache $instance = null ) {
+    public function __construct(EventDispatcherInterface $event_dispatcher = null, \Memcache $instance = null)
+    {
 
-    $this->_connection = $instance ?: new \Memcache();
+        $this->_connection = $instance ?: new \Memcache();
 
-    // Really unfortunate to have to do this
-    $this->_memcache_get_requires_filler = ( new \ReflectionMethod( 'Memcache', 'get' ) )->getNumberOfParameters() > 1;
+        // Really unfortunate to have to do this
+        $this->_memcache_get_requires_filler = (new \ReflectionMethod('Memcache', 'get'))->getNumberOfParameters() > 1;
 
-    parent::__construct( $event_dispatcher );
-
-  } // __construct
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public function addServer( $host, $port, $weight = self::DEFAULT_WEIGHT ) {
-
-    $failure_callback = ( function( $hostname, $port ) {
-      $this->_handleFailure( self::DEFAULT_FAILURE_REASON, $hostname, $port );
-    } );
-
-    $persist = self::DEFAULT_PERSISTENT;
-    $timeout = self::DEFAULT_TIMEOUT_SECS;
-    $retry   = self::DEFAULT_RETRY_INTERVAL_SECS;
-    $status  = self::DEFAULT_SERVER_STATUS;
-
-    $this->_connection->addServer( $host, $port, $persist, $weight, $timeout, $retry, $status, $failure_callback );
-
-  } // addServer
+        parent::__construct($event_dispatcher);
+    } // __construct
 
 
   /**
    * {@inheritDoc}
    */
-  public function addServers( array $servers ) {
+    public function addServer($host, $port, $weight = self::DEFAULT_WEIGHT)
+    {
 
-    foreach ( $servers as $server ) {
+        $failure_callback = ( function ($hostname, $port) {
+            $this->_handleFailure(self::DEFAULT_FAILURE_REASON, $hostname, $port);
+        } );
 
-      $weight = isset( $server['weight'] ) ?: self::DEFAULT_WEIGHT;
+        $persist = self::DEFAULT_PERSISTENT;
+        $timeout = self::DEFAULT_TIMEOUT_SECS;
+        $retry   = self::DEFAULT_RETRY_INTERVAL_SECS;
+        $status  = self::DEFAULT_SERVER_STATUS;
 
-      $this->addServer( $server['host'], $server['port'], $weight );
-
-    } // foreach servers
-
-  } // addServers
+        $this->_connection->addServer($host, $port, $persist, $weight, $timeout, $retry, $status, $failure_callback);
+    } // addServer
 
 
   /**
    * {@inheritDoc}
-   *
-   * @see http://www.php.net/manual/en/memcache.get.php
    */
-  protected function _get( $key ) {
+    public function addServers(array $servers)
+    {
 
-    $flags  = null;  // Passed by reference
-    $filler = false; // Passed by reference, undocumented complaint in PHP7 without
+        foreach ($servers as $server) {
+            $weight = isset($server['weight']) ?: self::DEFAULT_WEIGHT;
 
-    return ( $this->_memcache_get_requires_filler )
-           ? $this->_connection->get( $key, $flags, $filler )
-           : $this->_connection->get( $key );
-
-  } // _get
+            $this->addServer($server['host'], $server['port'], $weight);
+        } // foreach servers
+    } // addServers
 
 
   /**
@@ -113,22 +95,37 @@ class MemcacheAdapter extends AdapterAbstract {
    *
    * @see http://www.php.net/manual/en/memcache.get.php
    */
-  protected function _getMulti( array $keys ) {
+    protected function _get($key)
+    {
 
-    $data = $this->_get( $keys );
+        $flags  = null;  // Passed by reference
+        $filler = false; // Passed by reference, undocumented complaint in PHP7 without
 
-    // All keys at least come back defined (as null), and in the requested order
-    foreach ( $keys as $key ) {
+        return ( $this->_memcache_get_requires_filler )
+           ? $this->_connection->get($key, $flags, $filler)
+           : $this->_connection->get($key);
+    } // _get
 
-      if ( !isset( $data[ $key ] ) ) {
-        $data[ $key ] = null;
-      }
 
-    } // foreach keys
+  /**
+   * {@inheritDoc}
+   *
+   * @see http://www.php.net/manual/en/memcache.get.php
+   */
+    protected function _getMulti(array $keys)
+    {
 
-    return $data;
+        $data = $this->_get($keys);
 
-  } // _getMulti
+        // All keys at least come back defined (as null), and in the requested order
+        foreach ($keys as $key) {
+            if (!isset($data[ $key ])) {
+                $data[ $key ] = null;
+            }
+        } // foreach keys
+
+        return $data;
+    } // _getMulti
 
 
   /**
@@ -136,11 +133,11 @@ class MemcacheAdapter extends AdapterAbstract {
    *
    * @see http://www.php.net/manual/en/memcache.set.php
    */
-  protected function _set( $key, $value, $ttl ) {
+    protected function _set($key, $value, $ttl)
+    {
 
-    return $this->_connection->set( $key, $value, null, $ttl );
-
-  } // _set
+        return $this->_connection->set($key, $value, null, $ttl);
+    } // _set
 
 
   /**
@@ -148,11 +145,11 @@ class MemcacheAdapter extends AdapterAbstract {
    *
    * @see http://www.php.net/manual/en/memcache.add.php
    */
-  protected function _add( $key, $value, $ttl ) {
+    protected function _add($key, $value, $ttl)
+    {
 
-    return $this->_connection->add( $key, $value, null, $ttl );
-
-  } // _add
+        return $this->_connection->add($key, $value, null, $ttl);
+    } // _add
 
 
   /**
@@ -160,11 +157,11 @@ class MemcacheAdapter extends AdapterAbstract {
    *
    * @see http://www.php.net/manual/en/memcache.replace.php
    */
-  protected function _replace( $key, $value, $ttl ) {
+    protected function _replace($key, $value, $ttl)
+    {
 
-    return $this->_connection->replace( $key, $value, null, $ttl );
-
-  } // _replace
+        return $this->_connection->replace($key, $value, null, $ttl);
+    } // _replace
 
 
   /**
@@ -172,11 +169,11 @@ class MemcacheAdapter extends AdapterAbstract {
    *
    * @see http://www.php.net/manual/en/memcache.increment.php
    */
-  protected function _increment( $key, $value ) {
+    protected function _increment($key, $value)
+    {
 
-    return $this->_connection->increment( $key, $value );
-
-  } // _increment
+        return $this->_connection->increment($key, $value);
+    } // _increment
 
 
   /**
@@ -184,11 +181,11 @@ class MemcacheAdapter extends AdapterAbstract {
    *
    * @see http://www.php.net/manual/en/memcache.decrement.php
    */
-  protected function _decrement( $key, $value ) {
+    protected function _decrement($key, $value)
+    {
 
-    return $this->_connection->decrement( $key, $value );
-
-  } // _decrement
+        return $this->_connection->decrement($key, $value);
+    } // _decrement
 
 
   /**
@@ -196,11 +193,11 @@ class MemcacheAdapter extends AdapterAbstract {
    *
    * @see http://www.php.net/manual/en/memcache.delete.php
    */
-  protected function _delete( $key ) {
+    protected function _delete($key)
+    {
 
-    return $this->_connection->delete( $key );
-
-  } // _delete
+        return $this->_connection->delete($key);
+    } // _delete
 
 
   /**
@@ -210,15 +207,15 @@ class MemcacheAdapter extends AdapterAbstract {
    *
    * @see http://www.php.net/manual/en/memcache.delete.php
    */
-  protected function _deleteMulti( array $keys ) {
+    protected function _deleteMulti(array $keys)
+    {
 
-    foreach ( $keys as $key ) {
-      $this->_connection->delete( $key );
-    }
+        foreach ($keys as $key) {
+            $this->_connection->delete($key);
+        }
 
-    return true;
-
-  } // _deleteMulti
+        return true;
+    } // _deleteMulti
 
 
   /**
@@ -226,90 +223,82 @@ class MemcacheAdapter extends AdapterAbstract {
    *
    * @see http://php.net/manual/en/memcache.flush.php
    */
-  protected function _flush() {
+    protected function _flush()
+    {
 
-    return $this->_connection->flush();
-
-  } // _flush
+        return $this->_connection->flush();
+    } // _flush
 
 
   /**
    * When supported, retrieves a list of all keys being held in pool
    *
    * @param bool $on_reload
-   *      In the event of a cache flush, memcache does not actually write a different expiration, simply marks all blocks as invalid. This
-   *      unfortunately is not visible when listing all keys, and makes it seem like the flush didn't work.
-   *      Use this flag DURING a flush to cause a ->get request to be performed against each key it can find, causing it to remove itself, instead
-   *      of doing an individual ->get on each key during a list
+   *      In the event of a cache flush, memcache does not actually write a different expiration, simply marks all
+   *      blocks as invalid. This unfortunately is not visible when listing all keys, and makes it seem
+   *      like the flush didn't work. Use this flag DURING a flush to cause a ->get request to be performed
+   *      against each key it can find, causing it to remove itself, instead of doing an individual ->get
+   *      on each key during a list
    *
    * @return array  indexes are cache keys, values are their age
    */
-  protected function _getAllKeys() {
+    protected function _getAllKeys()
+    {
 
-    $results      = [];
-    $connection   = $this->_connection;
-    $server_slabs = $connection->getExtendedStats( self::STAT_KEY_SLABS );
+        $results      = [];
+        $connection   = $this->_connection;
+        $server_slabs = $connection->getExtendedStats(self::STAT_KEY_SLABS);
 
-    if ( empty( $server_slabs ) ) {
-      return $results;
-    }
-
-    foreach ( array_values( $server_slabs ) as $slabs ) {
-
-      $slab_ids = array_keys( $slabs );
-
-      foreach ( $slab_ids as $slab_id ) {
-
-        if ( !is_integer( $slab_id ) ) {
-          continue;
+        if (empty($server_slabs)) {
+            return $results;
         }
 
-        $cache_dump = $connection->getExtendedStats( self::STAT_KEY_DUMP, $slab_id );
+        foreach (array_values($server_slabs) as $slabs) {
+            $slab_ids = array_keys($slabs);
 
-        foreach ( array_values( $cache_dump ) as $entries ) {
+            foreach ($slab_ids as $slab_id) {
+                if (!is_integer($slab_id)) {
+                    continue;
+                }
 
-          if ( !is_array( $entries ) ) {
-            continue;
-          }
+                $cache_dump = $connection->getExtendedStats(self::STAT_KEY_DUMP, $slab_id);
 
-          foreach ( $entries as $key_name => $key_data ) {
+                foreach (array_values($cache_dump) as $entries) {
+                    if (!is_array($entries)) {
+                        continue;
+                    }
 
-            if ( !is_array( $key_data ) ) {
-              continue;
-            }
+                    foreach ($entries as $key_name => $key_data) {
+                        if (!is_array($key_data)) {
+                            continue;
+                        }
 
-            $results[] = $key_name;
+                        $results[] = $key_name;
+                    } // foreach entries
+                } // foreach cache_dump
+            } // foreach slabs
+        } // foreach server_slabs
 
-          } // foreach entries
-
-        } // foreach cache_dump
-
-      } // foreach slabs
-
-    } // foreach server_slabs
-
-    return $results;
-
-  } // _getAllKeys
+        return $results;
+    } // _getAllKeys
 
 
   /**
    * @return array
    */
-  protected function _getStats() {
+    protected function _getStats()
+    {
 
-    return $this->_connection->getStats();
-
-  } // _getStats
+        return $this->_connection->getStats();
+    } // _getStats
 
 
   /**
    * {@inheritDoc}
    */
-  protected function _close() {
+    protected function _close()
+    {
 
-    return $this->_connection->close();
-
-  } // _close
-
+        return $this->_connection->close();
+    } // _close
 } // MemcacheAdapter

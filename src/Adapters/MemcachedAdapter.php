@@ -6,12 +6,13 @@ use Behance\NBD\Cache\AdapterAbstract;
 use Behance\NBD\Cache\Exceptions\SystemRequirementException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
-class MemcachedAdapter extends AdapterAbstract {
+class MemcachedAdapter extends AdapterAbstract
+{
 
   /**
    * @var \Memcached
    */
-  private $_connection;
+    private $_connection;
 
   /**
    * A clone of the functionality from laravel port
@@ -19,49 +20,49 @@ class MemcachedAdapter extends AdapterAbstract {
    * @var bool  whether or not to use the breaking memcached 3.0 interface
    * @link https://github.com/laravel/framework/pull/15739/files
    */
-  private $_memcached_version_3_0;
+    private $_memcached_version_3_0;
 
 
   /**
    * @param Symfony\Component\EventDispatcher\EventDispatcherInterface
    * @param Memcached $instance
    */
-  public function __construct( EventDispatcherInterface $event_dispatcher = null, \Memcached $instance = null ) {
+    public function __construct(EventDispatcherInterface $event_dispatcher = null, \Memcached $instance = null)
+    {
 
-    $this->_connection = $instance ?: new \Memcached();
+        $this->_connection = $instance ?: new \Memcached();
 
-    // IMPORTANT: Unfortunately, there is a breaking change in the 3.0 version of Memcached driver...handle it
-    $this->_memcached_version_3_0 = ( new \ReflectionMethod( 'Memcached', 'getMulti' ) )->getNumberOfParameters() == 2;
+        // IMPORTANT: Unfortunately, there is a breaking change in the 3.0 version of Memcached driver...handle it
+        $this->_memcached_version_3_0 = (new \ReflectionMethod('Memcached', 'getMulti'))->getNumberOfParameters() == 2;
 
-    parent::__construct( $event_dispatcher );
-
-  } // __construct
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public function addServer( $host, $port ) {
-
-    $this->_connection->addServer( $host, $port );
-
-  } // addServer
+        parent::__construct($event_dispatcher);
+    } // __construct
 
 
   /**
    * {@inheritDoc}
    */
-  public function addServers( array $servers ) {
+    public function addServer($host, $port)
+    {
 
-    $configs = [];
+        $this->_connection->addServer($host, $port);
+    } // addServer
 
-    foreach ( $servers as $server ) {
-      $configs[] = [ $server['host'], $server['port'] ];
-    }
 
-    $this->_connection->addServers( $configs );
+  /**
+   * {@inheritDoc}
+   */
+    public function addServers(array $servers)
+    {
 
-  } // addServers
+        $configs = [];
+
+        foreach ($servers as $server) {
+            $configs[] = [ $server['host'], $server['port'] ];
+        }
+
+        $this->_connection->addServers($configs);
+    } // addServers
 
 
   /**
@@ -69,11 +70,11 @@ class MemcachedAdapter extends AdapterAbstract {
    *
    * @see http://php.net/manual/en/memcached.get.php
    */
-  protected function _get( $key ) {
+    protected function _get($key)
+    {
 
-    return $this->_connection->get( $key );
-
-  } // _get
+        return $this->_connection->get($key);
+    } // _get
 
 
   /**
@@ -81,38 +82,36 @@ class MemcachedAdapter extends AdapterAbstract {
    *
    * @see http://php.net/manual/en/memcached.getMulti.php
    */
-  protected function _getMulti( array $keys ) {
+    protected function _getMulti(array $keys)
+    {
 
-    $null = null;
+        $null = null;
 
-    return ( $this->_memcached_version_3_0 )
-           ? $this->_connection->getMulti( $keys, \Memcached::GET_PRESERVE_ORDER )
-           : $this->_connection->getMulti( $keys, $null, \Memcached::GET_PRESERVE_ORDER );
-
-  } // _getMulti
+        return ( $this->_memcached_version_3_0 )
+           ? $this->_connection->getMulti($keys, \Memcached::GET_PRESERVE_ORDER)
+           : $this->_connection->getMulti($keys, $null, \Memcached::GET_PRESERVE_ORDER);
+    } // _getMulti
 
 
   /**
    * {@inheritDoc}
    */
-  protected function _execute( \Closure $action, $operation, $key_or_keys, $mutable = false, $value = null ) {
+    protected function _execute(\Closure $action, $operation, $key_or_keys, $mutable = false, $value = null)
+    {
 
-    $result = parent::_execute( $action, $operation, $key_or_keys, $mutable, $value );
+        $result = parent::_execute($action, $operation, $key_or_keys, $mutable, $value);
 
-    // Adapter connection itself will only report correctly when not currently buffering results
-    if ( !$this->isBuffering() ) {
+        // Adapter connection itself will only report correctly when not currently buffering results
+        if (!$this->isBuffering()) {
+            $code = $this->_connection->getResultCode();
 
-      $code = $this->_connection->getResultCode();
+            if ($code !== \Memcached::RES_SUCCESS) {
+                $this->_handleFailure($this->_connection->getResultMessage(), null, null, $code);
+            }
+        } // if !isBuffering
 
-      if ( $code !== \Memcached::RES_SUCCESS ) {
-        $this->_handleFailure( $this->_connection->getResultMessage(), null, null, $code );
-      }
-
-    } // if !isBuffering
-
-    return $result;
-
-  } // _execute
+        return $result;
+    } // _execute
 
 
   /**
@@ -120,11 +119,11 @@ class MemcachedAdapter extends AdapterAbstract {
    *
    * @see http://php.net/manual/en/memcached.set.php
    */
-  protected function _set( $key, $value, $ttl ) {
+    protected function _set($key, $value, $ttl)
+    {
 
-    return $this->_connection->set( $key, $value, $ttl );
-
-  } // _set
+        return $this->_connection->set($key, $value, $ttl);
+    } // _set
 
 
   /**
@@ -132,11 +131,11 @@ class MemcachedAdapter extends AdapterAbstract {
    *
    * @see http://php.net/manual/en/memcached.add.php
    */
-  protected function _add( $key, $value, $ttl ) {
+    protected function _add($key, $value, $ttl)
+    {
 
-    return $this->_connection->add( $key, $value, $ttl );
-
-  } // _add
+        return $this->_connection->add($key, $value, $ttl);
+    } // _add
 
 
   /**
@@ -144,11 +143,11 @@ class MemcachedAdapter extends AdapterAbstract {
    *
    * @see http://php.net/manual/en/memcached.replace.php
    */
-  protected function _replace( $key, $value, $ttl ) {
+    protected function _replace($key, $value, $ttl)
+    {
 
-    return $this->_connection->replace( $key, $value, $ttl );
-
-  } // _replace
+        return $this->_connection->replace($key, $value, $ttl);
+    } // _replace
 
 
   /**
@@ -156,11 +155,11 @@ class MemcachedAdapter extends AdapterAbstract {
    *
    * @see http://php.net/manual/en/memcached.increment.php
    */
-  protected function _increment( $key, $value ) {
+    protected function _increment($key, $value)
+    {
 
-    return $this->_connection->increment( $key, $value );
-
-  } // _increment
+        return $this->_connection->increment($key, $value);
+    } // _increment
 
 
   /**
@@ -168,11 +167,11 @@ class MemcachedAdapter extends AdapterAbstract {
    *
    * @see http://php.net/manual/en/memcached.decrement.php
    */
-  protected function _decrement( $key, $value ) {
+    protected function _decrement($key, $value)
+    {
 
-    return $this->_connection->decrement( $key, $value );
-
-  } // _decrement
+        return $this->_connection->decrement($key, $value);
+    } // _decrement
 
 
   /**
@@ -180,11 +179,11 @@ class MemcachedAdapter extends AdapterAbstract {
    *
    * @see http://php.net/manual/en/memcached.delete.php
    */
-  protected function _delete( $key ) {
+    protected function _delete($key)
+    {
 
-    return $this->_connection->delete( $key );
-
-  } // _delete
+        return $this->_connection->delete($key);
+    } // _delete
 
 
   /**
@@ -192,11 +191,11 @@ class MemcachedAdapter extends AdapterAbstract {
    *
    * @see http://php.net/manual/en/memcached.deleteMulti.php
    */
-  protected function _deleteMulti( array $keys ) {
+    protected function _deleteMulti(array $keys)
+    {
 
-    return $this->_connection->deleteMulti( $keys );
-
-  } // _deleteMulti
+        return $this->_connection->deleteMulti($keys);
+    } // _deleteMulti
 
 
   /**
@@ -204,11 +203,11 @@ class MemcachedAdapter extends AdapterAbstract {
    *
    * @see http://php.net/manual/en/memcache.flush.php
    */
-  protected function _flush() {
+    protected function _flush()
+    {
 
-    return $this->_connection->flush();
-
-  } // _flush
+        return $this->_connection->flush();
+    } // _flush
 
 
   /**
@@ -216,11 +215,11 @@ class MemcachedAdapter extends AdapterAbstract {
    *
    * @see http://php.net/manual/en/memcached.getallkeys.php
    */
-  protected function _getAllKeys() {
+    protected function _getAllKeys()
+    {
 
-    return $this->_connection->getAllKeys();
-
-  } // _getAllKeys
+        return $this->_connection->getAllKeys();
+    } // _getAllKeys
 
 
   /**
@@ -228,20 +227,19 @@ class MemcachedAdapter extends AdapterAbstract {
    *
    * @see http://php.net/manual/en/memcache.getstats.php
    */
-  protected function _getStats( $type = 'items' ) {
+    protected function _getStats($type = 'items')
+    {
 
-    return $this->_connection->getStats( $type );
-
-  } // _getStats
+        return $this->_connection->getStats($type);
+    } // _getStats
 
 
   /**
    * Closes connection to server(s)
    */
-  protected function _close() {
+    protected function _close()
+    {
 
-    return $this->_connection->quit();
-
-  } // _close
-
+        return $this->_connection->quit();
+    } // _close
 } // MemcachedAdapter

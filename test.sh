@@ -5,6 +5,7 @@
 
 cd /app
 ./vendor/bin/phpunit
+./vendor/bin/phpcs
 
 exit $? # IMPORTANT: test runner needs the result code from this process
 

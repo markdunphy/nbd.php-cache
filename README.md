@@ -16,11 +16,11 @@ between [Memcache](https://pecl.php.net/package/memcached), [Memcached](https://
 5. Provide deep introspection with events
 
 
-###Implementation Note
+### Implementation Note
 
 - Redis, at time of writing, connects at the [moment](https://github.com/phpredis/phpredis/issues/934) of [configuration](https://github.com/phpredis/phpredis/issues/504). Until lazy instantiation is fully implemented in the released PECL extension (milestone 3.1.0), initial connection errors are sadly swallowed to work similar to memcache/memcached.
 
-###Usage
+### Usage
 ---
 
 ```
@@ -44,27 +44,27 @@ $config = [
 Create an adapter based on the presence of memcache/memcached/redis extensions
 
 ```
-$cache = Cache\Factory::create( $config );
+$cache = Cache\Factory::create($config);
 ```
 
 Or, build a instance of a specific type:
 
 ```
-$cache = Cache\Factory::create( $config, Factory::TYPE_REDIS );
-$cache = Cache\Factory::create( $config, Factory::TYPE_MEMCACHE );
-$cache = Cache\Factory::create( $config, Factory::TYPE_MEMCACHED );
+$cache = Cache\Factory::create($config, Factory::TYPE_REDIS);
+$cache = Cache\Factory::create($config, Factory::TYPE_MEMCACHE);
+$cache = Cache\Factory::create($config, Factory::TYPE_MEMCACHED);
 ```
 
 Retrieve a single value
 
 ```
-$cache->get( 'abcdefg' );
+$cache->get('abcdefg');
 ```
 
 Retrieve multiple values
 
 ```
-$cache->getMulti( [ 'abcdefg', 'hijklmn' ] ); // Result preserves order
+$cache->getMulti(['abcdefg', 'hijklmn']); // Result preserves order
 ```
 
 ### Testing

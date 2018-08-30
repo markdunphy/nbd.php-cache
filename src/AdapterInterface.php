@@ -2,26 +2,27 @@
 
 namespace Behance\NBD\Cache;
 
-interface AdapterInterface {
+interface AdapterInterface
+{
 
-  const EXPIRATION_DEFAULT = 1209600; // Two weeks in seconds
+    const EXPIRATION_DEFAULT = 1209600; // Two weeks in seconds
 
-  const EVENT_QUERY_BEFORE = 'cache.query.before';
-  const EVENT_QUERY_AFTER  = 'cache.query.after';
-  const EVENT_QUERY_FAIL   = 'cache.query.fail';
+    const EVENT_QUERY_BEFORE = 'cache.query.before';
+    const EVENT_QUERY_AFTER  = 'cache.query.after';
+    const EVENT_QUERY_FAIL   = 'cache.query.fail';
 
 
   /**
    * @param string $host
    * @param int    $port
    */
-  public function addServer( $host, $port );
+    public function addServer($host, $port);
 
 
   /**
    * @param array $servers
    */
-  public function addServers( array $servers );
+    public function addServers(array $servers);
 
 
   /**
@@ -29,7 +30,7 @@ interface AdapterInterface {
    *
    * @return mixed|bool  false when key is missing
    */
-  public function get( $key );
+    public function get($key);
 
 
   /**
@@ -37,7 +38,7 @@ interface AdapterInterface {
    *
    * @return array  key indexes present, but with false as value when not available
    */
-  public function getMulti( array $keys );
+    public function getMulti(array $keys);
 
 
   /**
@@ -47,7 +48,7 @@ interface AdapterInterface {
    *
    * @return bool
    */
-  public function set( $key, $value, $ttl = self::EXPIRATION_DEFAULT );
+    public function set($key, $value, $ttl = self::EXPIRATION_DEFAULT);
 
 
   /**
@@ -57,7 +58,7 @@ interface AdapterInterface {
    *
    * @return bool
    */
-  public function add( $key, $value, $ttl = self::EXPIRATION_DEFAULT );
+    public function add($key, $value, $ttl = self::EXPIRATION_DEFAULT);
 
 
   /**
@@ -67,7 +68,7 @@ interface AdapterInterface {
    *
    * @return bool
    */
-  public function replace( $key, $value, $ttl = self::EXPIRATION_DEFAULT );
+    public function replace($key, $value, $ttl = self::EXPIRATION_DEFAULT);
 
 
   /**
@@ -76,7 +77,7 @@ interface AdapterInterface {
    *
    * @return bool
    */
-  public function increment( $key, $value = 1 );
+    public function increment($key, $value = 1);
 
 
   /**
@@ -85,7 +86,7 @@ interface AdapterInterface {
    *
    * @return bool
    */
-  public function decrement( $key, $value = 1 );
+    public function decrement($key, $value = 1);
 
 
   /**
@@ -93,7 +94,7 @@ interface AdapterInterface {
    *
    * @return bool
    */
-  public function delete( $key );
+    public function delete($key);
 
 
   /**
@@ -101,7 +102,7 @@ interface AdapterInterface {
    *
    * @return bool
    */
-  public function deleteMulti( array $keys );
+    public function deleteMulti(array $keys);
 
 
   /**
@@ -110,19 +111,19 @@ interface AdapterInterface {
    *
    * @throws Behance\NBD\Cache\Exceptions\DuplicateActionException  when called while already buffering
    */
-  public function beginBuffer();
+    public function beginBuffer();
 
 
   /**
    * Processed any buffered actions so they may be seen by other connections
    */
-  public function commitBuffer();
+    public function commitBuffer();
 
 
   /**
    * Cancels any mutable actions that took place during the buffering period
    */
-  public function rollbackBuffer();
+    public function rollbackBuffer();
 
 
   /**
@@ -130,7 +131,7 @@ interface AdapterInterface {
    *
    * @return bool
    */
-  public function isBuffering();
+    public function isBuffering();
 
 
   /**
@@ -138,7 +139,7 @@ interface AdapterInterface {
    *
    * @return bool
    */
-  public function flush();
+    public function flush();
 
 
   /**
@@ -146,32 +147,31 @@ interface AdapterInterface {
    *
    * @return array
    */
-  public function getAllKeys();
+    public function getAllKeys();
 
 
   /**
    * @param  string $type
    * @return array
    */
-  public function getStats( $type = 'items' );
+    public function getStats($type = 'items');
 
 
   /**
    * @param string   $event_name
    * @param callable $handler
    */
-  public function bindEvent( $event_name, callable $handler );
+    public function bindEvent($event_name, callable $handler);
 
 
   /**
    * @return array
    */
-  public function getBoundEvents();
+    public function getBoundEvents();
 
 
   /**
    * Disconnects from server(s)
    */
-  public function close();
-
+    public function close();
 } // AdapterInterface

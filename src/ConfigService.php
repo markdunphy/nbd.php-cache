@@ -7,36 +7,37 @@ use Behance\NBD\Cache\Exceptions\ConfigRequirementException;
 /**
  * Validates and holds configuration for multiple cache servers together
  */
-class ConfigService {
+class ConfigService
+{
 
   /**
    * @var array holds configuration for all servers together
    */
-  private $_servers = [];
+    private $_servers = [];
 
 
   /**
    * @param array $servers
    */
-  public function addServers( array $servers ) {
+    public function addServers(array $servers)
+    {
 
-    foreach ( $servers as $server ) {
-      $this->addServer( $server );
-    }
-
-  } // addServers
+        foreach ($servers as $server) {
+            $this->addServer($server);
+        }
+    } // addServers
 
 
   /**
    * @param array $config
    */
-  public function addServer( array $config ) {
+    public function addServer(array $config)
+    {
 
-    $this->_checkParameters( $config );
+        $this->_checkParameters($config);
 
-    $this->_servers[] = $config;
-
-  } // addServer
+        $this->_servers[] = $config;
+    } // addServer
 
 
   /**
@@ -44,15 +45,17 @@ class ConfigService {
    *
    * @return array
    */
-  public function getServers() {
+    public function getServers()
+    {
 
-    if ( empty( $this->_servers ) ) {
-      throw new ConfigRequirementException( "No server configurations, call ->addServer() or ->addServers() first" );
-    }
+        if (empty($this->_servers)) {
+            throw new ConfigRequirementException(
+                'No server configurations, call ->addServer() or ->addServers() first'
+            );
+        }
 
-    return $this->_servers;
-
-  } // getServers
+        return $this->_servers;
+    } // getServers
 
 
   /**
@@ -60,19 +63,18 @@ class ConfigService {
    *
    * @param array $config
    */
-  private function _checkParameters( array $config ) {
+    private function _checkParameters(array $config)
+    {
 
-    $required = [
+        $required = [
         'host',
         'port',
-    ];
+        ];
 
-    $difference = array_diff( $required, array_keys( $config ) );
+        $difference = array_diff($required, array_keys($config));
 
-    if ( !empty( $difference ) ) {
-      throw new ConfigRequirementException( "Missing: " . implode( ', ', $difference ) );
-    }
-
-  } // _checkParameters
-
+        if (!empty($difference)) {
+            throw new ConfigRequirementException("Missing: " . implode(', ', $difference));
+        }
+    } // _checkParameters
 } // ConfigService
