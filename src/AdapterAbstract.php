@@ -14,6 +14,8 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 abstract class AdapterAbstract implements AdapterInterface
 {
 
+    const MAX_SAVE_ATTEMPTS = 3;
+
   /**
    * @var Symfony\Component\EventDispatcher\EventDispatcherInterface
    */
@@ -46,13 +48,16 @@ abstract class AdapterAbstract implements AdapterInterface
    */
     protected $_buffer;
 
+    /** @var  \Behance\NBD\Cache\CacheItem[] */
+    private $_deferred;
+
 
   /**
    * @param Symfony\Component\EventDispatcher\EventDispatcherInterface
    */
     public function __construct(EventDispatcherInterface $event_dispatcher = null)
     {
-
+        $this->_deferred = [];
         $this->_dispatcher = $event_dispatcher;
     } // __construct
 
@@ -332,6 +337,92 @@ abstract class AdapterAbstract implements AdapterInterface
 
         return $this->_close();
     } // close
+
+    public function getItem(string $key)
+    {
+        return new CacheItem($key, function () use ($key) {
+              return $this->get($key);
+        });
+    }
+
+    public function getItems(array $keys = []) : array
+    {
+        $items = [];
+        $results = $this->getMulti($keys);
+        foreach ($keys as $key) {
+            $item = $results[$key] ?: [false, null, null];
+            $items[$key] = new CacheItem($key, function () use ($item) {
+                return $item;
+            });
+        }
+        return $items;
+    }
+
+    public function hasItem($key) : bool
+    {
+        return $this->get($key) !== false;
+    }
+
+    public function clear() : bool
+    {
+        return (bool) $this->flush();
+    }
+
+    public function deleteItem($key)
+    {
+        return (bool) $this->delete($key);
+    }
+
+    public function deleteItems(array $keys) : bool
+    {
+        return (bool) $this->deleteMulti($keys);
+    }
+
+    public function save(Cache\CacheItemInterface $item)
+    {
+        if (!$item instanceof CacheItem) {
+            return false;
+        }
+
+        $value = [
+            true,
+            $item->get(),
+            $item->getExpiresAt()
+        ];
+
+        $attempts = 0;
+
+        do {
+            $success = (bool) $this->set($item->getKey(), $value, $item->getTtl());
+            ++$attempts;
+        } while (!$success && $attempts < self::MAX_SAVE_ATTEMPTS);
+
+        return $success;
+    }
+
+    public function saveDeferred(Cache\CacheItemInterface $item)
+    {
+        if (!$item instanceof CacheItem) {
+            return false;
+        }
+
+        $this->_deferred[$item->getKey()] = $item;
+
+        return true;
+    }
+
+    public function commit()
+    {
+        $failures = 0;
+
+        foreach ($this->_deferred as $item) {
+            if (!$this->save($item)) {
+                ++$failures;
+            }
+        }
+
+        return $failures > 0;
+    }
 
 
   /**
