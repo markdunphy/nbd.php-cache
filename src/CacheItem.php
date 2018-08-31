@@ -6,6 +6,7 @@ use Psr\Cache;
 
 class CacheItem implements Cache\CacheItemInterface
 {
+    const DEFAULT_VALUE = [false, null, null];
 
     /** @var string */
     private $_key;
@@ -22,7 +23,7 @@ class CacheItem implements Cache\CacheItemInterface
     /** @var int */
     private $_ttl = AdapterInterface::EXPIRATION_DEFAULT;
 
-    public function __construct(string $key, Closure $fetch)
+    public function __construct(string $key, \Closure $fetch)
     {
         $this->_key = $key;
         $this->_fetch = $fetch;
@@ -35,19 +36,13 @@ class CacheItem implements Cache\CacheItemInterface
 
     public function get()
     {
-        if (!$this->isHit()) {
-            return;
-        }
-
+        $this->_init();
         return $this->_value;
     }
 
     public function isHit() : bool
     {
-        if ($this->_fetch) {
-            $this->_init();
-        }
-
+        $this->_init();
         return $this->_hit;
     }
 
@@ -95,6 +90,7 @@ class CacheItem implements Cache\CacheItemInterface
 
     public function getTtl() : ?int
     {
+        $this->_init();
         return $this->_ttl;
     }
 

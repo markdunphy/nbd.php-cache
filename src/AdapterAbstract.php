@@ -4,10 +4,9 @@ namespace Behance\NBD\Cache;
 
 use Behance\NBD\Cache\Events\QueryEvent;
 use Behance\NBD\Cache\Events\QueryFailEvent;
-
 use Behance\NBD\Cache\Exceptions\DuplicateActionException;
 use Behance\NBD\Cache\Exceptions\OperationNotSupportedException;
-
+use Psr\Cache;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -338,10 +337,10 @@ abstract class AdapterAbstract implements AdapterInterface
         return $this->_close();
     } // close
 
-    public function getItem(string $key)
+    public function getItem(string $key) : CacheItem
     {
         return new CacheItem($key, function () use ($key) {
-              return $this->get($key);
+              return $this->get($key) ?: CacheItem::DEFAULT_VALUE;
         });
     }
 
@@ -350,7 +349,7 @@ abstract class AdapterAbstract implements AdapterInterface
         $items = [];
         $results = $this->getMulti($keys);
         foreach ($keys as $key) {
-            $item = $results[$key] ?: [false, null, null];
+            $item = $results[$key] ?: CacheItem::DEFAULT_VALUE;
             $items[$key] = new CacheItem($key, function () use ($item) {
                 return $item;
             });

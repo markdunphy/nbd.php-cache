@@ -10,6 +10,35 @@ class AdapterTest extends IntegrationTest
     private $_key   = 'abcdef';
     private $_value = 12345;
 
+    /**
+     * @test
+     * @dataProvider typeProvider
+     */
+    public function getItemSaveItemDeleteItem($type)
+    {
+        $adapter = $this->_getLiveAdapter($type);
+        $item = $adapter->getItem($this->_key);
+
+        $this->assertInstanceOf(CacheItem::class, $item);
+        $this->assertFalse($item->isHit());
+        $this->assertNull($item->get());
+        $this->assertEquals($this->_key, $item->getKey());
+
+        $item->set($this->_value);
+        $this->assertEquals($this->_value, $item->get());
+
+        $result = $adapter->save($item);
+        $this->assertTrue($result);
+
+        $item = $adapter->getItem($this->_key);
+        $this->assertTrue($item->isHit());
+        $this->assertEquals($this->_value, $item->get());
+
+        $adapter->deleteItem($this->_key);
+        $item = $adapter->getItem($this->_key);
+        $this->assertFalse($item->isHit());
+    }
+
   /**
    * @test
    * @dataProvider typeProvider
