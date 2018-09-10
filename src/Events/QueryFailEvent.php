@@ -1,5 +1,23 @@
 <?php
 
+/*************************************************************************
+ * ADOBE CONFIDENTIAL
+ * ___________________
+ *
+ * Copyright 2018 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
+ *************************************************************************/
+
+
 namespace Behance\NBD\Cache\Events;
 
 use Symfony\Component\EventDispatcher\Event;
@@ -35,14 +53,14 @@ class QueryFailEvent extends Event {
    * @param int    $port
    * @param int    $code
    */
-  public function __construct( $reason, $hostname = null, $port = null, $code = null ) {
+  public function __construct($reason, $hostname = null, $port = null, $code = null) {
 
-    $this->_reason   = $reason;
+    $this->_reason = $reason;
     $this->_hostname = $hostname;
-    $this->_port     = $port;
-    $this->_code     = $code;
+    $this->_port = $port;
+    $this->_code = $code;
 
-  } // __construct
+  }
 
 
   /**
@@ -52,7 +70,7 @@ class QueryFailEvent extends Event {
 
     return $this->_reason;
 
-  } // getReason
+  }
 
 
   /**
@@ -62,7 +80,7 @@ class QueryFailEvent extends Event {
 
     return $this->_hostname;
 
-  } // getHostname
+  }
 
 
   /**
@@ -72,7 +90,7 @@ class QueryFailEvent extends Event {
 
     return $this->_port;
 
-  } // getPort
+  }
 
 
   /**
@@ -82,6 +100,6 @@ class QueryFailEvent extends Event {
 
     return $this->_code;
 
-  } // getCode
+  }
 
-} // QueryFailEvent
+}
